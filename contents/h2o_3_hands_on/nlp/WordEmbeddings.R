@@ -15,7 +15,7 @@ h2o.init(max_mem_size = '8G', bind_to_localhost = FALSE)
 
 # Import data
 # https://s3-us-west-2.amazonaws.com/h2o-tutorials/data/topics/nlp/amazon_reviews/AmazonReviews.csv
-reviews = h2o.importFile("data/topics/nlp/amazon_reviews/AmazonReviews.csv")
+reviews = h2o.importFile("../../data/amazon_reviews/AmazonReviews.csv")
 
 ###### Step 2 (of 10). Exploratory Analysis ###### 
 
