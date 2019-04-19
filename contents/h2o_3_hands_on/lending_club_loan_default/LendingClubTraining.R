@@ -8,7 +8,7 @@ h2o.init(bind_to_localhost = F)
 
 # View Data
 # https://s3-us-west-2.amazonaws.com/h2o-tutorials/data/topics/lending/lending_club/LoanStats3a.csv
-loans <- h2o.importFile("/home/h2o/data/topics/lending/lending_club/LoanStats3a.csv", 
+loans <- h2o.importFile("../../data/lending_club/LoanStats3a.csv", 
                         col.types = c("int_rate" = "string",
                                       "revol_util" = "string",
                                       "emp_length" = "string",
