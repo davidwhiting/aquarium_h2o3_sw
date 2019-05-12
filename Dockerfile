@@ -7,8 +7,15 @@ RUN \
   apt-get -y install \
     apt-transport-https \
     apt-utils \
-#    python-software-properties \
-    software-properties-common
+    software-properties-common \
+    gnupg \
+    vim
+
+# RStudio
+RUN \
+## change keyserver command
+  apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 && \
+  echo "deb https://cran.rstudio.com/bin/linux/ubuntu bionic-cran35/" >> /etc/apt/sources.list
 
 # Java8
 RUN \
@@ -30,10 +37,30 @@ RUN \
     wget \
     zip
 
+# R
+RUN \
+  apt-get -y install \
+    r-base \
+    r-base-dev \
+    r-cran-jsonlite \
+    r-cran-rcurl && \
+  mkdir -p /usr/local/lib/R/site-library && \
+  chmod 777 /usr/local/lib/R/site-library
+
 # Log directory used by run.sh
 RUN \
   mkdir /log && \
   chmod o+w /log
+
+# RStudio
+RUN \
+  apt-get -y install locales && \
+  locale-gen en_US.UTF-8 && \
+  update-locale LANG=en_US.UTF-8 && \
+  wget https://download2.rstudio.org/server/trusty/amd64/rstudio-server-1.2.1335-amd64.deb && \
+  gdebi --non-interactive rstudio-server-1.2.1335-amd64.deb && \
+  echo "server-app-armor-enabled=0" >> /etc/rstudio/rserver.conf
+
 
 # ----- USER H2O -----
 
@@ -67,18 +94,29 @@ ENV H2O_BRANCH_NAME=rel-yates
 ENV H2O_BUILD_NUMBER=3
 ENV H2O_PROJECT_VERSION=3.24.0.${H2O_BUILD_NUMBER}
 ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
+
+export H2O_BRANCH_NAME=rel-yates
+export H2O_BUILD_NUMBER=3
+export H2O_PROJECT_VERSION=3.24.0.${H2O_BUILD_NUMBER}
+export H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
+
 RUN \
   wget http://h2o-release.s3.amazonaws.com/h2o/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
   unzip ${H2O_DIRECTORY}.zip && \
   rm ${H2O_DIRECTORY}.zip && \
   bash -c "source /home/h2o/Miniconda3/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl"
-
+  R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz
 
 # Spark
 ENV SPARK_VERSION=2.4.0
 ENV SPARK_HADOOP_VERSION=2.7
 ENV SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
 ENV SPARK_HOME=/home/h2o/bin/spark
+
+export SPARK_VERSION=2.4.0
+export SPARK_HADOOP_VERSION=2.7
+export SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
+export SPARK_HOME=/home/h2o/bin/spark
 
 # https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 RUN \
@@ -100,6 +138,12 @@ ENV SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
 ENV SPARKLING_WATER_BUILD_NUMBER=10
 ENV SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
 ENV SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
+
+export SPARKLING_WATER_BRANCH_NUMBER=2.4
+export SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
+export SPARKLING_WATER_BUILD_NUMBER=10
+export SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
+export SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
 
 RUN \
   cd bin && \
@@ -156,4 +200,5 @@ ENTRYPOINT ["/run.sh"]
 EXPOSE 54321
 EXPOSE 54327
 EXPOSE 8888
+EXPOSE 8787
 EXPOSE 4040
