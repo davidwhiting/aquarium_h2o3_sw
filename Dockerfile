@@ -1,5 +1,5 @@
-FROM ubuntu:16.04
-MAINTAINER H2O.ai <ops@h2o.ai>
+FROM ubuntu:18.04
+MAINTAINER David.Whiting <david.whiting@h2o.ai>
 
 # Linux
 RUN \
@@ -7,15 +7,14 @@ RUN \
   apt-get -y install \
     apt-transport-https \
     apt-utils \
-    python-software-properties \
+#    python-software-properties \
     software-properties-common
 
 # Java8
 RUN \
-  add-apt-repository -y ppa:webupd8team/java
-
-RUN \
-  apt-get -y update
+  apt-get -y install \
+    openjdk-8-jre \
+    openjdk-8-jdk
 
 # Linux
 RUN \
@@ -30,12 +29,6 @@ RUN \
     vim \
     wget \
     zip
-
-# Java 8
-RUN \
-  echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections && \
-  apt-get -y install oracle-java8-installer
 
 # Log directory used by run.sh
 RUN \
@@ -69,9 +62,10 @@ RUN \
   rm ${MINICONDA_FILE}
 
 # H2O
-ENV H2O_BRANCH_NAME=rel-wright
-ENV H2O_BUILD_NUMBER=2
-ENV H2O_PROJECT_VERSION=3.20.0.${H2O_BUILD_NUMBER}
+# http://h2o-release.s3.amazonaws.com/h2o/rel-yates/3/h2o-3.24.0.3.zip
+ENV H2O_BRANCH_NAME=rel-yates
+ENV H2O_BUILD_NUMBER=3
+ENV H2O_PROJECT_VERSION=3.24.0.${H2O_BUILD_NUMBER}
 ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
 RUN \
   wget http://h2o-release.s3.amazonaws.com/h2o/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
@@ -79,27 +73,34 @@ RUN \
   rm ${H2O_DIRECTORY}.zip && \
   bash -c "source /home/h2o/Miniconda3/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl"
 
+
 # Spark
-ENV SPARK_VERSION=2.3.1
+ENV SPARK_VERSION=2.4.0
 ENV SPARK_HADOOP_VERSION=2.7
 ENV SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
 ENV SPARK_HOME=/home/h2o/bin/spark
+
+# https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 RUN \
   mkdir bin && \
   cd bin && \
   mkdir -p ${SPARK_HOME} && \
-  wget http://mirrors.sonic.net/apache/spark/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz && \
-  tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 && \
+  wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz && \
+#  wget http://mirrors.sonic.net/apache/spark/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz && \
+  tar zxvf spark-2.4.0-bin-hadoop2.7.tgz -C ${SPARK_HOME} --strip-components 1 && \
+#  tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 && \
   rm ${SPARK_DIRECTORY}.tgz && \
   bash -c "source /home/h2o/Miniconda3/bin/activate pysparkling && pip install tabulate future colorama"
 
 
 # Sparkling Water
-ENV SPARKLING_WATER_BRANCH_NUMBER=2.3
+# https://s3.amazonaws.com/h2o-release/sparkling-water/rel-2.4/10/sparkling-water-2.4.10.zip
+ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
 ENV SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
-ENV SPARKLING_WATER_BUILD_NUMBER=8
+ENV SPARKLING_WATER_BUILD_NUMBER=10
 ENV SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
 ENV SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
+
 RUN \
   cd bin && \
   wget http://h2o-release.s3.amazonaws.com/sparkling-water/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip && \
