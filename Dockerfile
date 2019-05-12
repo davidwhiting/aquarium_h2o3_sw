@@ -1,6 +1,9 @@
 FROM ubuntu:18.04
 MAINTAINER David.Whiting <david.whiting@h2o.ai>
 
+# To keep tzdata from requesting time zones interactively
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Linux
 RUN \
   apt-get -y update && \
@@ -94,17 +97,11 @@ ENV H2O_BRANCH_NAME=rel-yates
 ENV H2O_BUILD_NUMBER=3
 ENV H2O_PROJECT_VERSION=3.24.0.${H2O_BUILD_NUMBER}
 ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
-
-export H2O_BRANCH_NAME=rel-yates
-export H2O_BUILD_NUMBER=3
-export H2O_PROJECT_VERSION=3.24.0.${H2O_BUILD_NUMBER}
-export H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
-
 RUN \
   wget http://h2o-release.s3.amazonaws.com/h2o/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
   unzip ${H2O_DIRECTORY}.zip && \
   rm ${H2O_DIRECTORY}.zip && \
-  bash -c "source /home/h2o/Miniconda3/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl"
+  bash -c "source /home/h2o/Miniconda3/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" && \
   R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz
 
 # Spark
@@ -112,12 +109,6 @@ ENV SPARK_VERSION=2.4.0
 ENV SPARK_HADOOP_VERSION=2.7
 ENV SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
 ENV SPARK_HOME=/home/h2o/bin/spark
-
-export SPARK_VERSION=2.4.0
-export SPARK_HADOOP_VERSION=2.7
-export SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
-export SPARK_HOME=/home/h2o/bin/spark
-
 # https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 RUN \
   mkdir bin && \
@@ -138,13 +129,6 @@ ENV SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
 ENV SPARKLING_WATER_BUILD_NUMBER=10
 ENV SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
 ENV SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
-
-export SPARKLING_WATER_BRANCH_NUMBER=2.4
-export SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
-export SPARKLING_WATER_BUILD_NUMBER=10
-export SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
-export SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
-
 RUN \
   cd bin && \
   wget http://h2o-release.s3.amazonaws.com/sparkling-water/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip && \
@@ -162,9 +146,10 @@ ENV SPARKLING_WATER_HOME=/home/h2o/bin/sparkling-water
 ######################################################################
 
 # Prologue
-RUN \
-  mkdir h2o-3-hands-on && \
-  mkdir sparkling-water-hands-on
+COPY --chown=h2o contents/data /home/h2o/
+COPY --chown=h2o contents/h2o-3_hands_on /home/h2o/
+COPY --chown=h2o contents/sparkling_water_hands_on /home/h2o/
+
 
 #RUN \
 #  cd h2o-3-hands-on && \
