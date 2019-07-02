@@ -1,7 +1,6 @@
 FROM step2
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
-SHELL ["/bin/bash", "-c"]
 ENV CONDA_HOME=/home/h2o/.local/miniconda3
 #ENV CONDA_HOME=/usr/local/miniconda3
 
@@ -18,11 +17,10 @@ USER h2o
 WORKDIR /home/h2o
 
 ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
+ENV CONDA=${CONDA_HOME}/bin/conda
 
 RUN \
-  mkdir /home/h2o/bin && \
-  ln -s ${CONDA_HOME}/bin/conda /home/h2o/bin/conda && \
   wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
   bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
-  conda update -n base -c defaults conda && \
+  ${CONDA} update -n base -c defaults conda && \
   rm ${MINICONDA_FILE}
