@@ -37,7 +37,7 @@ RUN \
 # R 3.6 Install
 RUN \
   apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 && \
-  echo "deb https://cloud.r-project.org/bin/linux/ubuntu xenial-cran35/" >> /etc/apt/sources.list && \
+  echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" >> /etc/apt/sources.list && \
   apt-get -y update && \
   apt-get -y install \
     r-base \
