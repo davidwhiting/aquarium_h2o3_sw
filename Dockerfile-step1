@@ -1,14 +1,6 @@
 FROM ubuntu:16.04
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
-#ENV SPARK_HOME=/usr/local/spark
-#ENV SPARK_VERSION=2.4.3
-#ENV SPARK_HADOOP_VERSION=2.7
-
-#ENV SPARKLING_WATER_HOME=/usr/local/sparkling-water
-#ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
-#ENV SPARKLING_WATER_BUILD_NUMBER=13
-
 ## Linux
 RUN \
   apt-get -y update && \
