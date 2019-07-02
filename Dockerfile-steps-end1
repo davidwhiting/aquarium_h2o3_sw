@@ -1,26 +1,5 @@
-FROM step4
+FROM step2
 MAINTAINER David Whiting <david.whiting@h2o.ai>
-
-ENV CONDA_HOME=/usr/local/miniconda3
-
-ENV H2O_BRANCH_NAME=rel-yates
-ENV H2O_MAJOR_VERSION=3.24.0
-ENV H2O_BUILD_NUMBER=5
-ENV H2O_S3_PATH=http://h2o-release.s3.amazonaws.com/h2o
-ENV H2O_PROJECT_VERSION=${H2O_MAJOR_VERSION}.${H2O_BUILD_NUMBER}
-ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
-
-# ----- USER H2O -----
-
-# h2o user
-RUN \
-  useradd -ms /bin/bash h2o && \
-  usermod -a -G sudo h2o && \
-  echo "h2o:h2o" | chpasswd && \
-  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
-
-USER h2o
-WORKDIR /home/h2o
 
 # Miniconda
 RUN \

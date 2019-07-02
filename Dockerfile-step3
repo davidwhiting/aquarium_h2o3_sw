@@ -1,26 +1,4 @@
 FROM step2
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
-ENV CONDA_HOME=/home/h2o/.local/miniconda3
-#ENV CONDA_HOME=/usr/local/miniconda3
 
-# ----- USER H2O -----
-
-# h2o user
-RUN \
-  useradd -ms /bin/bash h2o && \
-  usermod -a -G sudo h2o && \
-  echo "h2o:h2o" | chpasswd && \
-  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
-
-USER h2o
-WORKDIR /home/h2o
-
-ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
-ENV CONDA=${CONDA_HOME}/bin/conda
-
-RUN \
-  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
-  bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
-  ${CONDA} update -n base -c defaults conda && \
-  rm ${MINICONDA_FILE}
