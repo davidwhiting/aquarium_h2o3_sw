@@ -19,6 +19,7 @@ WORKDIR /home/h2o
 ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
 
 RUN \
+  mkdir /home/h2o/bin && \
   ln -s ${CONDA_HOME}/bin/conda /home/h2o/bin/conda && \
   wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
   bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
