@@ -3,6 +3,9 @@ MAINTAINER David Whiting <david.whiting@h2o.ai>
 
 ENV RSTUDIO_VERSION=1.2.1335
 
+# To keep tzdata from requesting time zones interactively
+ENV DEBIAN_FRONTEND=noninteractive
+
 ## Linux
 RUN \
   apt-get -y update && \
