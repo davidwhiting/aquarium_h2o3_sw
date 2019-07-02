@@ -7,6 +7,6 @@ ENV CONDA=${CONDA_HOME}/bin/conda
 RUN \
   wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
   bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
-  ${CONDA} create -y --name pysparkling python=2.7 anaconda && \
+  ${CONDA} update -n base -c defaults conda && \
   ${CONDA} create -y --name h2o python=3.6 anaconda && \
   rm ${MINICONDA_FILE}
