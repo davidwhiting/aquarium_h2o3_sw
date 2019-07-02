@@ -1,0 +1,173 @@
+FROM ubuntu:16.04
+MAINTAINER David Whiting <david.whiting@h2o.ai>
+
+ENV RSTUDIO_VERSION=1.2.1335
+
+ENV CONDA_HOME=/usr/local/miniconda3
+
+ENV H2O_BRANCH_NAME=rel-yates
+ENV H2O_MAJOR_VERSION=3.24.0
+ENV H2O_BUILD_NUMBER=5
+
+ENV SPARK_HOME=/usr/local/spark
+ENV SPARK_VERSION=2.4.3
+ENV SPARK_HADOOP_VERSION=2.7
+
+ENV SPARKLING_WATER_HOME=/usr/local/sparkling-water
+ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
+ENV SPARKLING_WATER_BUILD_NUMBER=13
+
+
+
+# Linux
+RUN \
+  apt-get -y update && \
+  apt-get -y install \
+    apt-transport-https \
+    apt-utils \
+    software-properties-common \
+    bzip2 \
+    cpio \
+    curl \
+    dirmngr \
+    gdebi-core \
+    git \
+    libcurl4-nss-dev \
+    locales \
+    net-tools \
+    sudo \
+    vim \
+    wget \
+    zip \
+    python-software-properties
+
+RUN \
+  locale-gen en_US.UTF-8 && \
+  update-locale LANG=en_US.UTF-8
+
+# Java8
+RUN \
+  apt-get -y install \
+    openjdk-8-jre \
+    openjdk-8-jdk
+
+# To keep tzdata from requesting time zones interactively
+ENV DEBIAN_FRONTEND=noninteractive
+
+# R 3.6 Install
+RUN \
+  apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 && \
+  echo "deb https://cloud.r-project.org/bin/linux/ubuntu xenial-cran35/" >> /etc/apt/sources.list && \
+  apt-get -y update && \
+  apt-get -y install \
+    r-base \
+    r-base-dev && \
+  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("RCurl","jsonlite","ggplot2"));' && \
+  mkdir -p /usr/local/lib/R/site-library && \
+  chmod 777 /usr/local/lib/R/site-library
+
+# RStudio Install
+ENV RSTUDIO=rstudio-server-${RSTUDIO_VERSION}-amd64.deb
+RUN \
+  wget https://download2.rstudio.org/server/trusty/amd64/${RSTUDIO} && \
+  gdebi --non-interactive ${RSTUDIO} && \
+  echo "server-app-armor-enabled=0" >> /etc/rstudio/rserver.conf && \
+  rm ${RSTUDIO}
+
+# https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
+ENV CONDA=${CONDA_HOME}/bin/conda
+RUN \
+  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
+  bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
+  ${CONDA} create -y --name pysparkling python=2.7 anaconda && \
+  ${CONDA} create -y --name h2o python=3.6 anaconda && \
+  rm ${MINICONDA_FILE}
+
+# Install H2O
+# http://h2o-release.s3.amazonaws.com/h2o/rel-yates/3/h2o-3.24.0.5.zip
+ENV H2O_S3_PATH=http://h2o-release.s3.amazonaws.com/h2o
+ENV H2O_PROJECT_VERSION=${H2O_MAJOR_VERSION}.${H2O_BUILD_NUMBER}
+ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
+RUN \
+  wget ${H2O_S3_PATH}/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
+  unzip ${H2O_DIRECTORY}.zip && \
+  rm ${H2O_DIRECTORY}.zip && \
+  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" && \
+  R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz
+
+# Spark 
+ENV SPARK_PATH=https://www-us.apache.org/dist/spark
+ENV SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
+RUN \
+  mkdir -p ${SPARK_HOME} && \
+  wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz && \
+  tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 && \
+  rm ${SPARK_DIRECTORY}.tgz && \
+  bash -c "source ${CONDA_HOME}/bin/activate pysparkling && pip install tabulate future colorama"
+
+# Sparkling Water
+ENV SPARKLING_WATER_PATH=http://h2o-release.s3.amazonaws.com/sparkling-water
+ENV SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
+ENV SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
+ENV SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
+RUN \
+  wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip && \
+  unzip ${SPARKLING_WATER_DIRECTORY}.zip && \
+  mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} && \
+  rm ${SPARKLING_WATER_DIRECTORY}.zip 
+
+# Log directory used by run.sh
+RUN \
+  mkdir /log && \
+  chmod o+w /log
+
+# ----- USER H2O -----
+
+# h2o user
+RUN \
+  useradd -ms /bin/bash h2o && \
+  usermod -a -G sudo h2o && \
+  echo "h2o:h2o" | chpasswd && \
+  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+USER h2o
+WORKDIR /home/h2o
+
+# Miniconda
+RUN \
+  ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config && \
+  sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" .jupyter/jupyter_notebook_config.py
+
+RUN \
+  ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark 
+
+COPY --chown=h2o conf/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
+COPY --chown=h2o conf/pyspark/kernel.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/
+
+######################################################################
+# ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
+######################################################################
+
+COPY --chown=h2o contents/data data
+COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
+COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
+
+######################################################################
+
+# ----- RUN INFORMATION -----
+
+USER h2o
+WORKDIR /home/h2o
+ENV JAVA_HOME=/usr
+
+# Entry point
+COPY run.sh /run.sh
+
+ENTRYPOINT ["/run.sh"]
+  
+EXPOSE 54321
+EXPOSE 54327
+EXPOSE 8888
+EXPOSE 8787
+EXPOSE 4040
