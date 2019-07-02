@@ -22,8 +22,7 @@ RUN \
     sudo \
     vim \
     wget \
-    zip \
-    python-software-properties
+    zip 
 
 RUN \
   locale-gen en_US.UTF-8 && \
