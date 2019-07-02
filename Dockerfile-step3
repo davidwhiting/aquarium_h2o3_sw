@@ -1,27 +1,27 @@
 FROM step2
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
-ENV CONDA_HOME=/usr/local/miniconda3
-ENV RSTUDIO_VERSION=1.2.1335
+ENV CONDA_HOME=/home/h2o/bin/miniconda3
+#ENV CONDA_HOME=/usr/local/miniconda3
 
-# R 3.6 Install
+# ----- USER H2O -----
+
+# h2o user
 RUN \
-  apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 && \
-  echo "deb https://cloud.r-project.org/bin/linux/ubuntu xenial-cran35/" >> /etc/apt/sources.list && \
-  apt-get -y update && \
-  apt-get -y install \
-    r-base \
-    r-base-dev && \
-  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("RCurl","jsonlite","ggplot2"));' && \
-  mkdir -p /usr/local/lib/R/site-library && \
-  chmod 777 /usr/local/lib/R/site-library
+  useradd -ms /bin/bash h2o && \
+  usermod -a -G sudo h2o && \
+  echo "h2o:h2o" | chpasswd && \
+  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
 
-# RStudio Install
-ENV RSTUDIO=rstudio-server-${RSTUDIO_VERSION}-amd64.deb
+USER h2o
+WORKDIR /home/h2o
+
+ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
+ENV CONDA=${CONDA_HOME}/bin/conda
+
 RUN \
-  wget https://download2.rstudio.org/server/trusty/amd64/${RSTUDIO} && \
-  gdebi --non-interactive ${RSTUDIO} && \
-  echo "server-app-armor-enabled=0" >> /etc/rstudio/rserver.conf && \
-  rm ${RSTUDIO}
-
-
+  mkdir -p /home/h2o/bin/miniconda3 && \
+  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
+  bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
+  ${CONDA} update -n base -c defaults conda && \
+  rm ${MINICONDA_FILE}
