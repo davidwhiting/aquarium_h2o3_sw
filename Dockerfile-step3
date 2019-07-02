@@ -20,7 +20,6 @@ ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
 ENV CONDA=${CONDA_HOME}/bin/conda
 
 RUN \
-  mkdir -p /home/h2o/bin/miniconda3 && \
   wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
   bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
   ${CONDA} update -n base -c defaults conda && \
