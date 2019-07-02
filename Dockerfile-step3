@@ -1,6 +1,7 @@
 FROM step2
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
+SHELL ["/bin/bash", "-c"]
 ENV CONDA_HOME=/home/h2o/.local/miniconda3
 #ENV CONDA_HOME=/usr/local/miniconda3
 
