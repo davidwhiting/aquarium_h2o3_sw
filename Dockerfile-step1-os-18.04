@@ -2,6 +2,11 @@ FROM ubuntu:18.04
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
 ENV RSTUDIO_VERSION=1.2.1335
+ENV CONDA_HOME=/home/h2o/.local/miniconda3
+
+ENV H2O_BRANCH_NAME=rel-yates
+ENV H2O_MAJOR_VERSION=3.24.0
+ENV H2O_BUILD_NUMBER=5
 
 # To keep tzdata from requesting time zones interactively
 ENV DEBIAN_FRONTEND=noninteractive
@@ -61,3 +66,41 @@ RUN \
 RUN \
   mkdir /log && \
   chmod o+w /log
+
+
+# ----- USER H2O -----
+
+# h2o user
+RUN \
+  useradd -ms /bin/bash h2o && \
+  usermod -a -G sudo h2o && \
+  echo "h2o:h2o" | chpasswd && \
+  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+USER h2o
+WORKDIR /home/h2o
+
+# Install Miniconda
+ENV MINICONDA_FILE=Miniconda3-latest-Linux-x86_64.sh
+ENV CONDA=${CONDA_HOME}/bin/conda
+
+RUN \
+  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} && \
+  bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} && \
+  ${CONDA} update -n base -c defaults conda && \
+  rm ${MINICONDA_FILE} && \
+  ${CONDA} create -y --name h2o python=3.6 anaconda
+
+# Install H2O
+# http://h2o-release.s3.amazonaws.com/h2o/rel-yates/3/h2o-3.24.0.5.zip
+ENV H2O_S3_PATH=http://h2o-release.s3.amazonaws.com/h2o
+ENV H2O_PROJECT_VERSION=${H2O_MAJOR_VERSION}.${H2O_BUILD_NUMBER}
+ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
+RUN \
+  wget ${H2O_S3_PATH}/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
+  unzip ${H2O_DIRECTORY}.zip && \
+  rm ${H2O_DIRECTORY}.zip && \
+  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" && \
+  R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz && \
+  rm -rf ${H2O_DIRECTORY}
+
