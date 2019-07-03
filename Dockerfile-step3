@@ -1,4 +1,0 @@
-FROM step2
-MAINTAINER David Whiting <david.whiting@h2o.ai>
-
-

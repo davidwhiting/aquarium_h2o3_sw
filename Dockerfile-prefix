@@ -1,12 +1,22 @@
 FROM ubuntu:18.04
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
+ENV BASE=/home/h2o/.local
+
 ENV RSTUDIO_VERSION=1.2.1335
-ENV CONDA_HOME=/home/h2o/.local/miniconda3
+ENV CONDA_HOME=${BASE}/miniconda3
 
 ENV H2O_BRANCH_NAME=rel-yates
 ENV H2O_MAJOR_VERSION=3.24.0
 ENV H2O_BUILD_NUMBER=5
+
+ENV SPARK_HOME=${BASE}/spark
+ENV SPARK_VERSION=2.4.3
+ENV SPARK_HADOOP_VERSION=2.7
+
+ENV SPARKLING_WATER_HOME=${BASE}/sparkling-water
+ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
+ENV SPARKLING_WATER_BUILD_NUMBER=13
 
 # To keep tzdata from requesting time zones interactively
 ENV DEBIAN_FRONTEND=noninteractive
@@ -104,3 +114,39 @@ RUN \
   R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz && \
   rm -rf ${H2O_DIRECTORY}
 
+## Create pysparkling
+RUN \
+  ${CONDA} create -y --name pysparkling python=2.7 anaconda
+
+# Spark
+ENV SPARK_PATH=https://www-us.apache.org/dist/spark
+ENV SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
+RUN \
+  mkdir -p ${SPARK_HOME} && \
+  wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz && \
+  tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 && \
+  rm ${SPARK_DIRECTORY}.tgz && \
+  bash -c "source ${CONDA_HOME}/bin/activate pysparkling && pip install tabulate future colorama"
+
+# Sparkling Water
+ENV SPARKLING_WATER_PATH=http://h2o-release.s3.amazonaws.com/sparkling-water
+ENV SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
+ENV SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
+ENV SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
+RUN \
+  wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip && \
+  unzip ${SPARKLING_WATER_DIRECTORY}.zip && \
+  mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} && \
+  rm ${SPARKLING_WATER_DIRECTORY}.zip 
+
+# Create jupyter notebook with h2o login token
+RUN \
+  ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config && \
+  sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py
+
+# Create pyspark  
+RUN \
+  ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark 
+
+COPY --chown=h2o conf/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
+COPY --chown=h2o conf/pyspark/kernel.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/
