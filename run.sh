@@ -18,7 +18,7 @@ logdir=/log/`date "+%Y%m%d-%H%M%S"`
 mkdir -p "$logdir"
 
 echo "-------------------------"
-echo "Welcome to H2O Training
+echo "Welcome to H2O Training  "
 echo "-------------------------"
 echo ""
 echo "- Connect to Jupyter notebook on port 8888 (password: h2o)"
