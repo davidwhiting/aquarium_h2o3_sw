@@ -1,17 +1,5 @@
-FROM step2:18.04
+FROM whiting/h2o-sw-prefix
 MAINTAINER David Whiting <david.whiting@h2o.ai>
-
-# Create jupyter notebook with h2o login token
-RUN \
-  ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config && \
-  sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py
-
-# Create pyspark  
-RUN \
-  ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark 
-
-COPY --chown=h2o conf/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
-COPY --chown=h2o conf/pyspark/kernel.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
