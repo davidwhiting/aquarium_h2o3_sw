@@ -1,6 +1,11 @@
 FROM whiting/h2o-sw-prefix
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
+## try to add a quick fix
+
+RUN \
+  pip uninstall notebook
+
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
 ######################################################################
