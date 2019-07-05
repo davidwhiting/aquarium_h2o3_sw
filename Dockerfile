@@ -1,10 +1,15 @@
 FROM whiting/h2o-sw-prefix
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
-## try to add a quick fix
+## To add later
+#COPY --chown=h2o conf/pyspark/kernel-template.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
+#RUN \
+#  sed -i 's/(CONDA_HOME)/'"${CONDA_HOME}"'/' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
+#  sed -i 's/(SPARKLING_WATER_HOME)/'"${SPARKLING_WATER_HOME}"'/' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
+#  sed -i 's/(SPARKLING_WATER_BRANCH_NUMBER)/'"${SPARKLING_WATER_BRANCH_NUMBER}"'/g' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
+#  sed -i 's/(SPARKLING_WATER_BUILD_NUMBER)/'"${SPARKLING_WATER_BUILD_NUMBER}"'/g' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
 
-RUN \
-  pip uninstall notebook
+# sed 's/xxx/'"$VARIABLE"'/'
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE

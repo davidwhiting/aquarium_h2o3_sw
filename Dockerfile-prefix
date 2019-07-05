@@ -3,18 +3,21 @@ MAINTAINER David Whiting <david.whiting@h2o.ai>
 
 ENV BASE=/home/h2o/.local
 
-ENV RSTUDIO_VERSION=1.2.1335
 ENV CONDA_HOME=${BASE}/miniconda3
+ENV SPARK_HOME=${BASE}/spark
+ENV SPARKLING_WATER_HOME=${BASE}/sparkling-water
 
-ENV H2O_BRANCH_NAME=rel-yates
+## Versioning information 
+
+ENV RSTUDIO_VERSION=1.2.1335
+
+ENV H2O_BRANCH_NAME=yates
 ENV H2O_MAJOR_VERSION=3.24.0
 ENV H2O_BUILD_NUMBER=5
 
-ENV SPARK_HOME=${BASE}/spark
 ENV SPARK_VERSION=2.4.3
 ENV SPARK_HADOOP_VERSION=2.7
 
-ENV SPARKLING_WATER_HOME=${BASE}/sparkling-water
 ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
 ENV SPARKLING_WATER_BUILD_NUMBER=13
 
@@ -77,7 +80,6 @@ RUN \
   mkdir /log && \
   chmod o+w /log
 
-
 # ----- USER H2O -----
 
 # h2o user
@@ -107,7 +109,7 @@ ENV H2O_S3_PATH=http://h2o-release.s3.amazonaws.com/h2o
 ENV H2O_PROJECT_VERSION=${H2O_MAJOR_VERSION}.${H2O_BUILD_NUMBER}
 ENV H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
 RUN \
-  wget ${H2O_S3_PATH}/${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
+  wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip && \
   unzip ${H2O_DIRECTORY}.zip && \
   rm ${H2O_DIRECTORY}.zip && \
   bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" && \
