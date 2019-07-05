@@ -1,0 +1,18 @@
+{
+    "display_name": "PySparkling",
+    "language": "python",
+    "argv": [
+        "${CONDA_HOME}/envs/pysparkling/bin/python",
+        "-m",
+        "ipykernel",
+        "--profile=pyspark",
+        "-f",
+        "{connection_file}"
+    ],
+    "env": {
+        "CAPTURE_STANDARD_OUT": "true",
+        "CAPTURE_STANDARD_ERR": "true",
+        "SEND_EMPTY_OUTPUT": "false",
+        "PYSPARK_SUBMIT_ARGS": "--master local[*] --conf spark.sql.catalogImplementation=in-memory --driver-memory=8g --executor-memory=8g --py-files ${SPARKLING_WATER_HOME}/py/build/dist/h2o_pysparkling_${SPARKLING_WATER_BRANCH_NUMBER}-${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}.zip" 
+    }
+}
