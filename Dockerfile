@@ -2,14 +2,13 @@ FROM whiting/h2o-sw-prefix
 MAINTAINER David Whiting <david.whiting@h2o.ai>
 
 ## To add later
-#COPY --chown=h2o conf/pyspark/kernel-template.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
+#ARG KERNEL.JSON=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
+#COPY --chown=h2o conf/pyspark/kernel-template.json ${KERNEL.JSON}
 #RUN \
-#  sed -i 's/(CONDA_HOME)/'"${CONDA_HOME}"'/' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
-#  sed -i 's/(SPARKLING_WATER_HOME)/'"${SPARKLING_WATER_HOME}"'/' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
-#  sed -i 's/(SPARKLING_WATER_BRANCH_NUMBER)/'"${SPARKLING_WATER_BRANCH_NUMBER}"'/g' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json && \
-#  sed -i 's/(SPARKLING_WATER_BUILD_NUMBER)/'"${SPARKLING_WATER_BUILD_NUMBER}"'/g' ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
-
-# sed 's/xxx/'"$VARIABLE"'/'
+#     sed "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL.JSON} \
+#  && sed "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL.JSON} \
+#  && sed "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL.JSON} \
+#  && sed "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL.JSON}
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
