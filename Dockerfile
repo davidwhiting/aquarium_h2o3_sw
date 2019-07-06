@@ -28,8 +28,8 @@ ENV JAVA_HOME=/usr
 
 # Entry point
 COPY run.sh /run.sh
-RUN \
-  sudo chmod a+x /run.sh
+#RUN \
+#  sudo chmod a+x /run.sh
 
 ENTRYPOINT ["/run.sh"]
 
