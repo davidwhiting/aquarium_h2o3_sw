@@ -1,17 +1,15 @@
 FROM ubuntu:18.04
-MAINTAINER David Whiting <david.whiting@h2o.ai>
+LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
-## Updates to make:
-## 1. Change ENV to ARG where possible
-##    - $SPARK_HOME is ENV
-## 2. Optimize RUN commands to minimize layers
-##
+## Below ENV only used when needed in the image. ARG is 
+## available during build but will not be set in final 
+## image.
 
 ARG BASE=/home/h2o/.local
 
-ARG CONDA_HOME=${BASE}/miniconda3
+ENV CONDA_HOME=${BASE}/miniconda3
 ENV SPARK_HOME=${BASE}/spark
-ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
+ENV SPARKLING_WATER_HOME=${BASE}/sparkling-water
 
 ##############################
 ## Versioning information
@@ -25,10 +23,10 @@ ARG H2O_BUILD_NUMBER=5
 ARG SPARK_VERSION=2.4.3
 ARG SPARK_HADOOP_VERSION=2.7
 
-ARG SPARKLING_WATER_BRANCH_NUMBER=2.4
-ARG SPARKLING_WATER_BUILD_NUMBER=13
+ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
+ENV SPARKLING_WATER_BUILD_NUMBER=13
 
-##### DON'T CHANGE ENV BELOW ############
+##### DON'T CHANGE ARG OR ENV BELOW ############
 
 # To keep tzdata from requesting time zones interactively
 ARG DEBIAN_FRONTEND=noninteractive
@@ -51,6 +49,9 @@ ARG SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING
 ARG SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
 
 #########################################
+
+## Note: Minimized the RUN commands below to build as
+##       few layers as possible.
 
 ## Linux
 RUN \
@@ -141,6 +142,3 @@ RUN \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   # Create pyspark
   && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
-
-COPY --chown=h2o conf/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
-COPY --chown=h2o conf/pyspark/kernel.json ${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/

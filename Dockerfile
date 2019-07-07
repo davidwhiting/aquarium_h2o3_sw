@@ -1,14 +1,23 @@
 FROM whiting/h2o-sw-prefix
-MAINTAINER David Whiting <david.whiting@h2o.ai>
+LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
-## To add later
-#ARG KERNEL.JSON=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
-#COPY --chown=h2o conf/pyspark/kernel-template.json ${KERNEL.JSON}
-#RUN \
-#     sed "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL.JSON} \
-#  && sed "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL.JSON} \
-#  && sed "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL.JSON} \
-#  && sed "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL.JSON}
+## Copy templates and substitute for versions in Dockerfile-prefix
+
+ARG KERNEL.JSON=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
+
+COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
+COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL.JSON}
+
+# Entry point
+COPY templates/run.sh /run.sh
+## Replace variables with their values
+RUN \
+  sudo chmod a+x /run.sh \
+  && sed "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
+  && sed "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL.JSON} \
+  && sed "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL.JSON} \
+  && sed "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL.JSON} \
+  && sed "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL.JSON}
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
@@ -26,12 +35,7 @@ USER h2o
 WORKDIR /home/h2o
 ENV JAVA_HOME=/usr
 
-# Entry point
-COPY run.sh /run.sh
-#RUN \
-#  sudo chmod a+x /run.sh
-
-ENTRYPOINT ["/run.sh"]
+#ENTRYPOINT ["/run.sh"]
 
 EXPOSE 54321
 EXPOSE 54327
