@@ -91,7 +91,6 @@ RUN \
         openjdk-8-jdk 
 
 # Install R 3.6
-
 RUN \
   apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
   && echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" >> /etc/apt/sources.list \
@@ -137,7 +136,7 @@ RUN \
 # Install H2O
 RUN \
   ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
-  wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
+  && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
   && unzip ${H2O_DIRECTORY}.zip \
   && rm ${H2O_DIRECTORY}.zip \
   && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" \
