@@ -7,12 +7,14 @@ LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 ARG BASE=/home/h2o/.local
 
-ENV CONDA_HOME=${BASE}/miniconda3
+ARG CONDA_HOME=${BASE}/miniconda3
 ENV SPARK_HOME=${BASE}/spark
-ENV SPARKLING_WATER_HOME=${BASE}/sparkling-water
+ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
 
 ##############################
 ## Versioning information
+##   Update these values and (hopefully) everything
+##   will run correctly below. YMMV.
 
 ARG RSTUDIO_VERSION=1.2.1335
 
@@ -23,8 +25,11 @@ ARG H2O_BUILD_NUMBER=5
 ARG SPARK_VERSION=2.4.3
 ARG SPARK_HADOOP_VERSION=2.7
 
-ENV SPARKLING_WATER_BRANCH_NUMBER=2.4
-ENV SPARKLING_WATER_BUILD_NUMBER=13
+ARG SPARKLING_WATER_BRANCH_NUMBER=2.4
+ARG SPARKLING_WATER_BUILD_NUMBER=13
+
+  # file found at $SPARK_HOME/python/lib/
+ARG PY4J_VERSION=0.10.7
 
 ##### DON'T CHANGE ARG OR ENV BELOW ############
 
@@ -47,6 +52,9 @@ ARG SPARKLING_WATER_PATH=http://h2o-release.s3.amazonaws.com/sparkling-water
 ARG SPARKLING_WATER_BRANCH_NAME=rel-${SPARKLING_WATER_BRANCH_NUMBER}
 ARG SPARKLING_WATER_PROJECT_VERSION=${SPARKLING_WATER_BRANCH_NUMBER}.${SPARKLING_WATER_BUILD_NUMBER}
 ARG SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
+
+ARG KERNEL=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
+ARG PY4J=py4j-${PY4J_VERSION}-src.zip
 
 #########################################
 
@@ -142,3 +150,20 @@ RUN \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   # Create pyspark
   && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
+
+## Copy templates and substitute for versions
+COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
+COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
+
+# Entry point
+COPY templates/run.sh /run.sh
+
+## Replace variables with their values
+RUN \
+   sudo chmod a+x /run.sh \
+   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
+   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
