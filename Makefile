@@ -1,6 +1,6 @@
 
-prefix:
-	docker build -t whiting/h2o-sw-prefix -f Dockerfile-prefix .
+prep:
+	docker build -t whiting/h2o-sw-prep -f Dockerfile-prep .
 
 build:
 	docker build -t whiting/h2o-sw-training -f Dockerfile .

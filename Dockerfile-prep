@@ -18,6 +18,9 @@ ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
 
 ARG RSTUDIO_VERSION=1.2.1335
 
+ARG CONDA_PYTHON_H2O=3.6
+ARG CONDA_PYTHON_PYSPARKLING=2.7
+
 ARG H2O_BRANCH_NAME=yates
 ARG H2O_MAJOR_VERSION=3.24.0
 ARG H2O_BUILD_NUMBER=5
@@ -124,7 +127,7 @@ RUN \
   && bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} \
   && ${CONDA} update -n base -c defaults conda \
   && rm ${MINICONDA_FILE} \
-  && ${CONDA} create -y --name h2o python=3.6 anaconda \
+  && ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
   # Install H2O
   && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
   && unzip ${H2O_DIRECTORY}.zip \
@@ -133,7 +136,7 @@ RUN \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
   && rm -rf ${H2O_DIRECTORY} \
   ## Create pysparkling
-  && ${CONDA} create -y --name pysparkling python=2.7 anaconda \
+  && ${CONDA} create -y --name pysparkling python=${CONDA_PYTHON_PYSPARKLING} anaconda \
   # Spark
   && mkdir -p ${SPARK_HOME} \
   && wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz \

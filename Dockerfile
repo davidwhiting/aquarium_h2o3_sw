@@ -1,4 +1,4 @@
-FROM whiting/h2o-sw-prefix
+FROM whiting/h2o-sw-prep
 LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 ######################################################################
