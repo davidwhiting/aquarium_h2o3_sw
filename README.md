@@ -9,10 +9,9 @@ David Whiting's Introduction to H2O-3 and Sparkling Water
 
 trainings. 
 
+>Most of the original content and tutorials were built by the excellent data scientists and engineers at H2O. My main contribution has been in organizing and polishing their work, to fit my instructional style.
 >
-Most of the original content and tutorials were built by the excellent data scientists and engineers at H2O. My main contribution has been in organizing and polishing their work, to fit my instructional style.
->
-In the end, I am solely responsible for any mistakes or misstatements in the course materials.
+>In the end, I am solely responsible for any mistakes or misstatements in the course materials.
 >
 >  David Whiting 
 
