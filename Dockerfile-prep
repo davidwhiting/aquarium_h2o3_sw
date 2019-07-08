@@ -61,9 +61,6 @@ ARG PY4J=py4j-${PY4J_VERSION}-src.zip
 
 #########################################
 
-## Note: Minimized the RUN commands below to build as
-##       few layers as possible.
-
 ## Linux
 RUN \
   apt-get -y update \
@@ -85,13 +82,18 @@ RUN \
         wget \
         zip \
   && locale-gen en_US.UTF-8 \
-  && update-locale LANG=en_US.UTF-8 \
-  # Install Java 8
-  && apt-get -y install \
+  && update-locale LANG=en_US.UTF-8 
+
+# Install Java 8
+RUN \
+  apt-get -y install \
         openjdk-8-jre \
-        openjdk-8-jdk \
-  # Install R 3.6
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
+        openjdk-8-jdk 
+
+# Install R 3.6
+
+RUN \
+  apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
   && echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" >> /etc/apt/sources.list \
   && apt-get -y update  \
   && apt-get -y install \
@@ -99,14 +101,18 @@ RUN \
         r-base-dev \
   && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("RCurl","jsonlite","ggplot2"));' \
   && mkdir -p /usr/local/lib/R/site-library \
-  && chmod 777 /usr/local/lib/R/site-library \
-  # RStudio Install
-  && wget https://download2.rstudio.org/server/trusty/amd64/${RSTUDIO} \
+  && chmod 777 /usr/local/lib/R/site-library 
+
+# RStudio Install
+RUN \
+  wget https://download2.rstudio.org/server/trusty/amd64/${RSTUDIO} \
   && gdebi --non-interactive ${RSTUDIO} \
   && echo "server-app-armor-enabled=0" >> /etc/rstudio/rserver.conf \
-  && rm ${RSTUDIO} \
-  # Log directory used by run.sh
-  && mkdir /log \
+  && rm ${RSTUDIO} 
+
+# Log directory used by run.sh
+RUN \
+  mkdir /log \
   && chmod o+w /log
 
 # ----- USER H2O -----
@@ -121,38 +127,41 @@ RUN \
 USER h2o
 WORKDIR /home/h2o
 
+# Install Miniconda
 RUN \
-  # Install Miniconda
   wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} \
   && bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} \
   && ${CONDA} update -n base -c defaults conda \
-  && rm ${MINICONDA_FILE} \
-  && ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
-  # Install H2O
-  && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
+  && rm ${MINICONDA_FILE}
+
+# Install H2O
+RUN \
+  ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
+  wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
   && unzip ${H2O_DIRECTORY}.zip \
   && rm ${H2O_DIRECTORY}.zip \
   && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
+  && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-  && rm -rf ${H2O_DIRECTORY} \
-  ## Create pysparkling
-  && ${CONDA} create -y --name pysparkling python=${CONDA_PYTHON_PYSPARKLING} anaconda \
-  # Spark
+  && rm -rf ${H2O_DIRECTORY} 
+
+# Install Spark
+RUN \
+  ${CONDA} create -y --name pysparkling python=${CONDA_PYTHON_PYSPARKLING} anaconda \
   && mkdir -p ${SPARK_HOME} \
   && wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz \
   && tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 \
   && rm ${SPARK_DIRECTORY}.tgz \
   && bash -c "source ${CONDA_HOME}/bin/activate pysparkling && pip install tabulate future colorama" \
-  # Sparkling Water  
-  && wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip \
+  && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
+
+# Install Sparkling Water  
+RUN \
+  wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip \
   && unzip ${SPARKLING_WATER_DIRECTORY}.zip \
   && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
-  && rm ${SPARKLING_WATER_DIRECTORY}.zip \
-  # Create jupyter notebook with h2o login token
-  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
-  && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-  # Create pyspark
-  && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
+  && rm ${SPARKLING_WATER_DIRECTORY}.zip
 
 ## Copy templates and substitute for versions
 COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
@@ -161,7 +170,7 @@ COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 # Entry point
 COPY templates/run.sh /run.sh
 
-## Replace variables with their values
+## Replace template variables with their values
 RUN \
    sudo chmod a+x /run.sh \
    && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
