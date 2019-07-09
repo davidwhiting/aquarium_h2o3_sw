@@ -1,9 +1,7 @@
 default: build
 
-prep:
-	docker build -t whiting/h2o-sw-prep -f Dockerfile-prep .
 
-build:  prep
+build: 
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
 run:
@@ -11,3 +9,13 @@ run:
 
 save:
 	docker save whiting/h2o-sw-training | gzip -c > h2o-sw-training.gz
+
+
+## for initially loading data from s3
+fetch:
+	mkdir -p contents/data
+	s3cmd sync s3://whiting-aquarium-h2osw/contents/data/ contents/data/
+
+## for correcting data issues in development
+update_data:
+	s3cmd sync contents/data/ s3://whiting-aquarium-h2osw/contents/data/ 
