@@ -48,7 +48,8 @@ ARG H2O_S3_PATH=http://h2o-release.s3.amazonaws.com/h2o
 ARG H2O_PROJECT_VERSION=${H2O_MAJOR_VERSION}.${H2O_BUILD_NUMBER}
 ARG H2O_DIRECTORY=h2o-${H2O_PROJECT_VERSION}
 
-ARG SPARK_PATH=https://www-us.apache.org/dist/spark
+ARG SPARK_PATH=https://archive.apache.org/dist/spark
+#ARG SPARK_PATH=https://www-us.apache.org/dist/spark
 ARG SPARK_DIRECTORY=spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}
 
 ARG SPARKLING_WATER_PATH=http://h2o-release.s3.amazonaws.com/sparkling-water
