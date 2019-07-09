@@ -5,7 +5,7 @@ LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 ## available during build but will not be set in final 
 ## image.
 
-ARG BASE=/home/h2o/.local
+ARG BASE=/home/h2o/bin
 
 ARG CONDA_HOME=${BASE}/miniconda3
 ENV SPARK_HOME=${BASE}/spark
