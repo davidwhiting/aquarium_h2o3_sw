@@ -17,16 +17,38 @@ trainings.
 
 ## II. Building the Docker
 
-The docker build process is in two steps: `Dockerfile-prep` and `Dockerfile`. `Dockerfile-prep` creates the system and loads the appropriate versions of H2O-3, Spark, Sparkling Water, etc. `Dockerfile` then adds the contents and the finishing touches on the image. The reason for making this two-stage is that contents get updated much more frequently than the software. The time to build an entire system is greatly shortened by this two-stage process, with the first part prebuilt.
-
-### A. Dockerfile-prep
-
-All of the versioning information is set at the top of the `Dockerfile-prep` file. The variable `$BASE` is the baseline path within the `/home/h2o` user folder where miniconda, spark, and sparkling water will be installed. Its default is set as
+The docker build process is in the standard `Dockerfile`. The data need to be downloaded separately, which will automatically happen if using the `Makefile` with either the
 
 ```
-ARG BASE=/home/h2o/.local
+> make fetch
+```
+or
+
+```
+> make build
+```
+commands.
+
+`Dockerfile` creates the system and loads the appropriate versions of H2O-3, Spark, Sparkling Water, etc., then adds the contents and the finishing touches on the image. The data thus have to be added before the docker image is created.
+
+If there are data errors or updates that need to occur, that can happen via the
+
+```
+> make update_data
+```
+command. This is intended to fix the data within the repository, then sync those changes automatically to s3. Note that data are not saved in the github site.
+
+
+### Dockerfile
+
+All of the versioning information is set at the top of the `Dockerfile` file. The variable `$BASE` is the baseline path within the `/home/h2o` user folder where miniconda, spark, and sparkling water will be installed. Its default is set as
+
+```
+ARG BASE=/home/h2o/bin
 ```
 Feel free to change that to anything you would like.
+
+
 
 #### 1. Updating versions
 
@@ -51,13 +73,7 @@ ARG SPARKLING_WATER_BUILD_NUMBER=13
 # file found at $SPARK_HOME/python/lib/
 ARG PY4J_VERSION=0.10.7
 ```
-Once more, this should be the only place you need to set these values. If everything goes well, you can then type from the command line
-
-```
-> make prep
-```
-
-to build the prep image.
+Once more, this should be the only place you need to set these values. 
 
 #### 2. Template files
 
@@ -80,13 +96,6 @@ ARG PY4J=py4j-${PY4J_VERSION}-src.zip
 ```
 is found in `$SPARK_HOME/python/lib/` and its version number should not change frequently. However, it is required to use pysparkling and might be the culprit if things are not working well.
 
-### B. Dockerfile
-
-The ultimate Dockerfile copies the course contents to the prep image and sets up the final entrypoint and exposes the right ports. Build it using
-
-```
-> make build
-```
 
 ## III. Course Contents
 
