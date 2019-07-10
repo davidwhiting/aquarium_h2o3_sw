@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DATASET="../../data/topics/sentiment_analysis/AmazonReviews_Train.csv"
+DATASET="../../data/amazon_reviews/AmazonReviews_Train.csv"
 OUTPUT=$(pwd)/"output"
 mkdir -p $OUTPUT
 
