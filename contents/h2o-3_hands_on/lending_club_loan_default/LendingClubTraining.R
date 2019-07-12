@@ -274,49 +274,74 @@ h2o.table(loans$verification_status)
 ###
 #################################################################################
 
+## Now that we have cleaned our data, we can extract information from our
+## current columns to create new features. This process is referred to as
+## feature engineering. The general idea is to express information found in our
+## data in a manner that is most understandable to the algorithms we employ,
+## with the goal of improving the performance of our supervised learning
+## models. 
+##
+## Feature engineering can be considered the "secret sauce" in building a
+## superior predictive model: it is often (although not always) more important
+## than the choice of machine learning algorithm. A very good summary of feature
+## engineering recipes can be found in the online Driverless AI Documentation
+## http://docs.h2o.ai/driverless-ai/latest-stable/docs/userguide/transformations.html.  
+##
+## We will do some basic feature engineering using the date fields in our data,
+## and then use NLP (natural language processing) to create word embedding
+## features from the loan description text field in our data. 
+##
+## The new columns we will create are:
+##
+## credit_length: the number of years someone has had a credit history
+## issue_d_year and issue_d_month: the year and month from the loan issue date
+## word embeddings from the loan description
 
-# Now that we have cleaned our data, we can add some new columns to our dataset 
-# that may help improve the performance of our supervised learning models.
-# 
-# The new columns we will create are:
-#   
-# * 'credit_length': the time from their earliest credit line to when they were issued the loan
-# * 'issue_d_year' and 'issue_d_month': extract year and month from the issue date
-# * word embeddings from the loan description
-# 
-# 
-# Credit Length
-# 
-# We can extract the credit length by subtracting the year they had their 
-# earliest credit line from the year when they issued the loan.
+## Credit Length
+##
+## We can extract the credit length by subtracting the year of their earliest
+## credit line from the year they were issued the loan. 
+
 loans$credit_length = h2o.year(loans$issue_d) - h2o.year(loans$earliest_cr_line)
 head(loans$credit_length, 10)
 
-# Issue Date Expansion
-#
-# We can extract the year and month from the issue date. We may find that the 
-# month or the year when the loan was issued can impact the probability of a bad 
-# loan.
+## Issue Date Expansion
+##
+## We next extract the year and month from the issue date. We may find that the
+## month or the year when the loan was issued will impact the probability of a
+## bad loan. We will treat issue_d_month as a factor, since months are cyclical. 
+
 loans$issue_d_year = h2o.year(loans$issue_d)
-loans$issue_d_month = as.factor(h2o.month(loans$issue_d))  # we will treat month as a enum/factor since its cyclical
+loans$issue_d_month = as.factor(h2o.month(loans$issue_d))
+
 head(loans[c("issue_d_year", "issue_d_month")], 10)
 
-# Word Embeddings
-# 
-# One of the columns in our dataset is a description of why the loan was 
-# requested. The first few descriptions in the dataset are shown below.
+## Word Embeddings
+## 
+## One of the columns in our dataset is a user-provided description of why the
+## loan was requested. The first few descriptions in the dataset are shown
+## below.
+
 head(loans$desc)
 
-# This information may be important to the model but supervised learning 
-# algorithms have a hard time understanding text. Instead we will convert these
-# strings to a numeric vector using the Word2Vec algorithm.
+## The descriptions above may contain information that would assist in
+## predicting default, but supervised learning algorithms in general have a hard
+## time understanding text. We need to convert these strings into a numeric
+## representation of the text in order for our algorithms to utilize it. There
+## are multiple choices for doing so, in this example we will use the Word2Vec
+## algorithm. 
+##
+## We start by defining stop words (terms that are considered too frequent to
+## carry much information) 
 
 STOP_WORDS = c("ax","i","you","edu","s","t","m","subject","can","lines","re","what",
                "there","all","we","one","the","a","an","of","or","in","for","by","on",
                "but","is","in","a","not","with","as","was","if","they","are","this","and","it","have",
                "from","at","my","be","by","not","that","to","from","com","org","like","likes","so")
 
-tokenize <- function(sentences, stop_word = STOP_WORDS) {
+## We next tokenize the descriptions by breaking the text into individual words
+
+tokenize = function(sentences, stop_word = STOP_WORDS) {
   tokenized = h2o.tokenize(sentences, "\\\\W+")
   tokenized_lower = h2o.tolower(tokenized)
   tokenized_filtered = tokenized_lower[(h2o.nchar(tokenized_lower) >= 2) | is.na(tokenized_lower), ]
@@ -325,27 +350,57 @@ tokenize <- function(sentences, stop_word = STOP_WORDS) {
   return(tokenized_words)
 }
 
-# Break loan description into sequence of words
 words = tokenize(h2o.ascharacter(loans$desc))
 
-# Train Word2Vec Model
+## We next train our Word2Vec model on the words extracted from our
+## descriptions. We choose an output vector size of 100. 
+
+## Aside: What does Word2Vec do? At a high level, it is a dimensionality
+## reduction method for numerical representations of text. But it reduces
+## dimensionality while preserving (and discovering?) relationships between
+## words in the text.
+##
+## Suppose we were to create a dictionary of all the words in our descriptions,
+## and suppose that dictionary contained 2500 unique words. At one extreme, we
+## could create an indicator variable for each word (i.e., one-hot
+## encoding). This would yield 2500 new features that would likely lead to
+## massive overfitting of models.
+##
+## At the other extreme, suppose we had someone classify those words into
+## different groups and create indicator variables for each: e.g., risky_words
+## ("bankruptcy", "default", "forfeit", "lien", etc.), angry_words (profanity,
+## "complaint", etc.), and so on. This reduces dimensionality by manually
+## grouping words, but it is extremely labor intensive.
+##
+## Word2Vec starts with the entire dictionary size K as inputs and the selected
+## vector size k as the target number of outputs. In the in-between layer(s) of
+## the Word2Vec neural net, a k-dimensional numeric representation of each word
+## is derived. 
+
 w2v_model = h2o.word2vec(training_frame = words, vec_size = 100, model_id = 'w2v')
 
-# Sanity check - find synonyms for the word 'car'
+## Sanity check the Word2Vec model by finding synonyms for the word "car"
+                                        
 h2o.findSynonyms(w2v_model, "car", count = 5)
 
-# Calculate a vector for each description
-desc_vecs = h2o.transform(w2v_model, words, aggregate_method = "AVERAGE")
+## Next calculate a vector for each description by averaging over all of the
+## words in that description
 
+desc_vecs = h2o.transform(w2v_model, words, aggregate_method = "AVERAGE")
 head(desc_vecs)
 
-# Add aggregated word embeddings 
+## Add the aggregated word embeddings from the Word2Vec model to the loans data 
+
 loans = h2o.cbind(loans, desc_vecs)
 
+#################################################################################
+###
+### Step 5 (of 10). Model training 
+###
+#################################################################################
 
-# Step 5 (of 10). Model training ------------------------------------------
-#
-# Now that we have cleaned our data and added new columns, we will train a model to predict bad loans.
+## Now that we have cleaned our data and added new columns, we will train a
+## model to predict bad loans. First split our data into train and test.
 
 frames = h2o.splitFrame(loans, ratios = .75, seed = 25)
 train = frames[[1]]
@@ -378,81 +433,118 @@ cols_to_remove = c("initial_list_status",
                    "desc",
                    "zip_code")
 
+## Next create a list of predictors as a subset of the columns of the loans H2O
+## Frame
+
 predictors = setdiff(colnames(loans), cols_to_remove)
+predictors
 
-gbm_model = h2o.gbm(x = predictors, 
-                    y = "bad_loan",
-                    training_frame = train,
-                    validation_frame = test,
-                    stopping_metric = "logloss",
-                    stopping_rounds = 5,  # early stopping
-                    score_tree_interval = 5,
-                    ntrees = 500,
-                    model_id = "gbm",
-                    nfolds = 5,
-                    seed = 25,
-                    fold_assignment = 'Stratified')
+## Now create an XGBoost model for predicting loan default. This model is being
+## run with almost all of the values at their defaults. Later we may want to
+## optimize the hyperparameters using a grid search.
 
-# Step 6 (of 10). Examine model accuracy ----------------------------------
-#
-# The plot below shows the performance of the model as more trees are built. 
-# This graph can help us see if our model is overfitting. Our early stopping 
-# kicked in at 100 trees. This is where the model was no longer improving 
-# performance on the test data.
+xgboost_model = h2o.gbm(x = predictors, 
+                        y = "bad_loan",
+                        training_frame = train,
+                        validation_frame = test,
+                        ntrees = 20,
+                        model_id = "xgboost",
+                        nfolds = 5
+                        )
 
-plot(gbm_model)
+#################################################################################
+###
+### Step 6 (of 10). Examine model accuracy
+###
+#################################################################################
 
-# The ROC curve of the training and testing data are shown below. The area under 
-# the ROC curve is much higher for the training data than the testing data 
-# indicating that the model may be beginning to memorize the training data.
+## The plot below shows the performance of the model as more trees are
+## built. This graph can help us see at what point our model begins
+## overfitting. Our test data error rate stops improving at around 8-10 trees. 
 
-print(paste("AUC for training data:", h2o.auc(h2o.performance(gbm_model, train = T))))
-plot(h2o.performance(gbm_model, train = T), main = 'Training Data')
+plot(xgboost_model)
 
-print(paste("AUC for x-val data:", h2o.auc(h2o.performance(gbm_model, xval = T))))
-plot(h2o.performance(gbm_model, train = T), main = 'Cross-validation')
+## The ROC curve of the training and testing data are shown below. The area
+## under the ROC curve is much higher for the training data than the test data,
+## indicating that the model may be beginning to memorize the training data. 
 
-print(paste("AUC for test data:", h2o.auc(h2o.performance(gbm_model, valid = T))))
-plot(h2o.performance(gbm_model, train = T), main = 'Test Data')
+print(paste("AUC for training data:",
+            h2o.auc(h2o.performance(xgboost_model, train = TRUE))))
+plot(h2o.performance(xgboost_model, train = T), main = 'Training Data')
 
+print(paste("AUC for x-val data:",
+            h2o.auc(h2o.performance(xgboost_model, xval = TRUE))))
+plot(h2o.performance(xgboost_model, train = T), main = 'Cross-validation')
 
-# Step 7 (of 10). Interpret model -----------------------------------------
-
-# The variable importance plot shows us which variables are most important to 
-# predicting bad_loan. We can use partial dependency plots to learn more about 
-# how these variables affect the prediction.
-
-h2o.varimp_plot(gbm_model, 20)
-# The partial dependency plot of the 'inq_last_6mths' predictor shows us that, as 
-# the number of inquiries in the last 6 months increases, the likelihood of the 
-# loan defaulting also increases.
-
-pdp = h2o.partialPlot(gbm_model, cols = "inq_last_6mths", data = train)
-
-head(h2o.table(loans$inq_last_6mths), 100)
+print(paste("AUC for test data:",
+            h2o.auc(h2o.performance(xgboost_model, valid = TRUE))))
+plot(h2o.performance(xgboost_model, train = T), main = 'Test Data')
 
 
-# Step 8 (of 10). Save and reuse model ------------------------------------
-# 
-# The model can either be embedded into a self-contained Java MOJO/POJO package
-# or it can be saved and later loaded directly in H2O-3 cluster. For production
-# use, we recommend to use MOJO as it is optimised for speed. See 
-# http://docs.h2o.ai/h2o/latest-stable/h2o-docs/productionizing.html for further
-# information.
-h2o.download_mojo(gbm_model)
+#################################################################################
+###
+### Step 7 (of 10). Interpret model
+###
+#################################################################################
 
+## The variable importance plot shows us which variables are most important to
+## predicting bad_loan. We can use partial dependency plots to learn more about
+## how these variables affect the prediction. 
 
-# We can save the model to disk for later batch scoring in H2O cluster.
-model_path = h2o.saveModel(gbm_model, path = '.' , force=T)
+h2o.varimp_plot(xgboost_model, 20)
+
+## As suspected, interest rate appears to be the most important feature in
+## predicting loan default. The partial dependency plot of the int_rate
+## predictor shows us that as the interest rate increases, the likelihood of the
+## loan defaulting also increases. 
+
+pdp = h2o.partialPlot(xgboost_model, cols = "int_rate", data = train)
+
+#################################################################################
+###
+### Step 8 (of 10). Save and reuse model
+###
+#################################################################################
+
+## The model can either be embedded into a self-contained Java MOJO package or
+## it can be saved and later loaded directly into an H2O-3 cluster. For
+## production use, we recommend using MOJO as it is optimized for speed. See the
+## guide http://docs.h2o.ai/h2o/latest-stable/h2o-docs/productionizing.html for
+## further information.  
+
+## Downloading MOJO
+
+h2o.download_mojo(xgboost_model)
+
+## Save and reuse the model
+##
+## We can save the model to disk for later use.
+
+model_path = h2o.saveModel(xgboost_model, path = '.' , force=T)
 print(model_path)
+
+## At a later date, we can load the model for batch scoring in the H2O cluster. 
+
 loaded_model = h2o.loadModel(path=model_path)
 
-# We can also score new data using the predict function:
-bad_loan_hat = predict(gbm_model, test)
+## We can also score new data using the predict function:
+
+bad_loan_hat = predict(xgboost_model, test)
 head(bad_loan_hat, 15)
 
-# Step 9 (of 10). AutoML (optional) ---------------------------------------
-#
+#################################################################################
+###
+### Step 9 (of 10). AutoML (optional) 
+###
+#################################################################################
+
+## AutoML can be used for automating the machine learning workflow, which
+## includes automatic training and tuning of many models within a user-specified
+## time-limit or user specified model build limit. 
+##
+## Stacked Ensembles will be automatically trained on collections of individual
+## models to produce highly predictive ensemble models. 
+
 # AutoML can be used for automating the machine learning workflow, which 
 # includes automatic training and tuning of many models within a user-specified 
 # time-limit. Stacked Ensembles will be automatically trained on collections of 
@@ -461,29 +553,38 @@ head(bad_loan_hat, 15)
 aml = h2o.automl(x=predictors, 
                  y='bad_loan', 
                  training_frame=train,
-                 max_runtime_secs = 300,
+                 max_models=5,
+                 max_runtime_secs_per_model=60,
                  seed = 25)
 
-# The leaderboard contains the performance metrics of the models generated by AutoML:
+## While the AutoML job is running, this is a good time to open H2O Flow and
+## monitor the model building process. 
+##
+## Once complete, the leaderboard contains the performance metrics of the models
+## generated by AutoML: 
+
 aml@leaderboard
 
-# Since we provided only training frame during training, the models are sorted 
-# by their cross-validated performance metrics (AUROC by default for 
-# classification). We can evaluate the best model ('leader') on the test data:
+## Since we provided only the training H2O Frame during training, the models are
+## sorted by their cross-validated performance metrics (AUC by default for
+## classification). We can evaluate the best model (leader) on the test data: 
 
 perf = h2o.performance(aml@leader, newdata = test)
 plot(perf)
 print(h2o.auc(perf))
 print(perf)
 
-# Step 10 (of 10). Shutdown H2O cluster -----------------------------------
+## Another convenient use of H2O Flow is to explore the various models built by
+## AutoML. 
+
+
+#################################################################################
+###
+### Step 10 (of 10). Shutdown H2O cluster
+###
+#################################################################################
 
 h2o.shutdown(prompt = FALSE)
 
-# Bonus -------------------------------------------------------------------
-#
-# This tutorial: https://github.com/h2oai/h2o-tutorials/tree/master/training/h2o_3_hands_on/lending_club_loan_default
-# Other tutorials: https://github.com/h2oai/h2o-tutorials/
-# H2O Documentation: http://docs.h2o.ai/
-# Awesome H2O: https://github.com/h2oai/awesome-h2o
-
+### Bonus: H2O-3 documentation
+### - http://docs.h2o.ai/
