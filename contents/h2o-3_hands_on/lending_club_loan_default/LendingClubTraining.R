@@ -57,6 +57,7 @@ loans = h2o.importFile("../../data/lending_club/LoanStats3a.csv",
                                      "emp_length" = "string",
                                      "verification_status" = "string"))
 
+
 ## Note that the h2o.importFile command completely bypassed R and loaded the
 ## data directly into H2O memory. Alternatively, one could load a dataset into a
 ## dataframe then pass it to H2O. The approach we use above is far more
@@ -443,14 +444,14 @@ predictors
 ## run with almost all of the values at their defaults. Later we may want to
 ## optimize the hyperparameters using a grid search.
 
-xgboost_model = h2o.gbm(x = predictors, 
-                        y = "bad_loan",
-                        training_frame = train,
-                        validation_frame = test,
-                        ntrees = 20,
-                        model_id = "xgboost",
-                        nfolds = 5
-                        )
+xgboost_model = h2o.xgboost(x = predictors, 
+                            y = "bad_loan",
+                            training_frame = train,
+                            validation_frame = test,
+                            ntrees = 20,
+                            model_id = "xgboost",
+                            nfolds = 5
+                            )
 
 #################################################################################
 ###
@@ -462,7 +463,7 @@ xgboost_model = h2o.gbm(x = predictors,
 ## built. This graph can help us see at what point our model begins
 ## overfitting. Our test data error rate stops improving at around 8-10 trees. 
 
-plot(xgboost_model)
+# plot(xgboost_model) # Plotting in R not available for xgboost models
 
 ## The ROC curve of the training and testing data are shown below. The area
 ## under the ROC curve is much higher for the training data than the test data,
@@ -470,15 +471,15 @@ plot(xgboost_model)
 
 print(paste("AUC for training data:",
             h2o.auc(h2o.performance(xgboost_model, train = TRUE))))
-plot(h2o.performance(xgboost_model, train = T), main = 'Training Data')
+plot(h2o.performance(xgboost_model, train = TRUE), main = 'Training Data')
 
 print(paste("AUC for x-val data:",
             h2o.auc(h2o.performance(xgboost_model, xval = TRUE))))
-plot(h2o.performance(xgboost_model, train = T), main = 'Cross-validation')
+plot(h2o.performance(xgboost_model, xval = TRUE), main = 'Cross-validation')
 
 print(paste("AUC for test data:",
             h2o.auc(h2o.performance(xgboost_model, valid = TRUE))))
-plot(h2o.performance(xgboost_model, train = T), main = 'Test Data')
+plot(h2o.performance(xgboost_model, valid = TRUE), main = 'Test Data')
 
 
 #################################################################################
