@@ -2,7 +2,7 @@ default: build
 
 fetch:
 	mkdir -p contents/data
-	s3cmd sync s3://whiting-aquarium-h2osw/contents/data/ contents/data/
+	s3cmd sync --no-preserve s3://whiting-aquarium-h2osw/contents/data/ contents/data/
 
 build:  fetch
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
@@ -15,5 +15,5 @@ save:
 
 ## for correcting data issues in development
 update_data:
-	s3cmd sync contents/data/ s3://whiting-aquarium-h2osw/contents/data/ 
+	s3cmd sync --no-preserve contents/data/ s3://whiting-aquarium-h2osw/contents/data/ 
 
