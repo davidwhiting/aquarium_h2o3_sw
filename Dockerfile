@@ -99,7 +99,7 @@ RUN \
   && apt-get -y install \
         r-base \
         r-base-dev \
-  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("RCurl","jsonlite","ggplot2"));' \
+  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("RCurl","jsonlite","ggplot2","evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"));' \
   && mkdir -p /usr/local/lib/R/site-library \
   && chmod 777 /usr/local/lib/R/site-library 
 
