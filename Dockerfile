@@ -103,6 +103,9 @@ RUN \
   && mkdir -p /usr/local/lib/R/site-library \
   && chmod 777 /usr/local/lib/R/site-library 
 
+RUN \
+  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","kitr","based64enc","rprojroot","mime","rmarkdown"))'
+
 # RStudio Install
 RUN \
   wget https://download2.rstudio.org/server/trusty/amd64/${RSTUDIO} \

@@ -25,7 +25,7 @@ For the AutoML binary classification demo, we use a subset of the [Product Backo
 
 ```{r}
 # Use local data file or download from GitHub
-docker_data_path <- "../../../data/backorders/product_backorders.csv"
+docker_data_path <- "../../data/backorders/product_backorders.csv"
 if (file.exists(docker_data_path)) {
   data_path <- docker_data_path
 } else {
@@ -118,4 +118,7 @@ h2o.saveModel(aml@leader, path = "./product_backorders_model_bin")
 ```{r}
 h2o.download_mojo(aml@leader, path = "./")
 ```
-
+## Shutdown H2O Cluster
+```{r}
+h2o.shutdown(prompt = FALSE)
+```
