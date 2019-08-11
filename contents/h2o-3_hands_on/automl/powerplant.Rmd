@@ -115,4 +115,7 @@ If needed, the standard `h2o.performance()` function can be applied to the AutoM
 perf <- h2o.performance(aml@leader, test)
 perf
 ```
-
+When finished, shut down the H2O cluster.
+```{r}
+h2o.shutdown()
+```

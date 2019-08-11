@@ -118,4 +118,7 @@ h2o.saveModel(aml@leader, path = "./product_backorders_model_bin")
 ```{r}
 h2o.download_mojo(aml@leader, path = "./")
 ```
-
+## Shutdown H2O Cluster
+```{r}
+h2o.shutdown()
+```
