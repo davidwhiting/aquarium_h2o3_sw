@@ -45,5 +45,5 @@ In this tutorial, you will:
 
 Demo Notebooks:
 
- - [powerplant.Rmd](powerplant.Rmd) [<img src="https://www.r-project.org//favicon-16x16.png" width=18>](https://www.r-project.org//favicon-16x16.png)
- - [powerplant.ipynb](powerplant.ipynb) [<img src="https://www.python.org/static/favicon.ico"  width=16>](https://www.python.org/static/favicon.ico)
+ - [powerplant_regression.Rmd](powerplant_regression.Rmd) [<img src="https://www.r-project.org//favicon-16x16.png" width=18>](https://www.r-project.org//favicon-16x16.png)
+ - [powerplant_regression.ipynb](powerplant_regression.ipynb) [<img src="https://www.python.org/static/favicon.ico"  width=16>](https://www.python.org/static/favicon.ico)
