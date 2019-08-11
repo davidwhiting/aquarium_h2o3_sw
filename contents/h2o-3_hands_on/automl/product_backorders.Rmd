@@ -120,5 +120,5 @@ h2o.download_mojo(aml@leader, path = "./")
 ```
 ## Shutdown H2O Cluster
 ```{r}
-h2o.shutdown()
+h2o.shutdown(prompt = FALSE)
 ```

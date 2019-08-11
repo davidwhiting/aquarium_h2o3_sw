@@ -117,5 +117,5 @@ perf
 ```
 When finished, shut down the H2O cluster.
 ```{r}
-h2o.shutdown()
+h2o.shutdown(prompt = FALSE)
 ```
