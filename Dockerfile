@@ -104,7 +104,7 @@ RUN \
   && chmod 777 /usr/local/lib/R/site-library 
 
 RUN \
-  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","kitr","based64enc","rprojroot","mime","rmarkdown"))'
+  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"))' 
 
 # RStudio Install
 RUN \
@@ -117,6 +117,18 @@ RUN \
 RUN \
   mkdir /log \
   && chmod o+w /log
+
+# IRKernel for R in Jupyter
+RUN \
+  apt-get -y update \
+  && apt-get -y install \
+        libzmq3-dev \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        jupyter-core \
+        jupyter-client \
+  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
+  && R -e 'IRkernel::installspec(user = FALSE)'
 
 # ----- USER H2O -----
 
@@ -165,6 +177,11 @@ RUN \
   && unzip ${SPARKLING_WATER_DIRECTORY}.zip \
   && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
   && rm ${SPARKLING_WATER_DIRECTORY}.zip
+
+# Install Spylon-kernel for Scala
+#RUN \
+#  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
+#  && bash -c "sudo ${CONDA_HOME}/envs/h2o/bin/python -m spylon_kernel install"
 
 ## Copy templates and substitute for versions
 COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
