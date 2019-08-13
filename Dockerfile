@@ -179,9 +179,9 @@ RUN \
   && rm ${SPARKLING_WATER_DIRECTORY}.zip
 
 # Install Spylon-kernel for Scala
-RUN \
-  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
-  && bash -c "sudo ${CONDA_HOME}/envs/h2o/bin/python -m spylon_kernel install"
+#RUN \
+#  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
+#  && bash -c "sudo ${CONDA_HOME}/envs/h2o/bin/python -m spylon_kernel install"
 
 ## Copy templates and substitute for versions
 COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
