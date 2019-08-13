@@ -15,7 +15,7 @@ Load the **h2o** R library and initialize a local H2O cluster.
 
 ```{r}
 library(h2o)
-h2o.init()
+h2o.init(bind_to_localhost = FALSE)
 h2o.no_progress()  # Turn off progress bars for notebook readability
 ```
 
