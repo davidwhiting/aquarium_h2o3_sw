@@ -1,7 +1,7 @@
 
 
 library(h2o)
-h2o.init()
+h2o.init(bind_to_localhost = FALSE)
 
 filename = "http://s3.amazonaws.com/h2o-public-test-data/smalldata/gbm_test/titanic.csv"
 df <- h2o.importFile(path = filename)
