@@ -85,6 +85,16 @@ RUN \
   && locale-gen en_US.UTF-8 \
   && update-locale LANG=en_US.UTF-8 
 
+## IRKernel for R in Jupyter
+RUN \
+  apt-get -y update \
+  && apt-get -y install \
+        libzmq3-dev \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        jupyter-core \
+        jupyter-client
+
 # Install Java 8
 RUN \
   apt-get -y install \
@@ -104,7 +114,8 @@ RUN \
   && chmod 777 /usr/local/lib/R/site-library 
 
 RUN \
-  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","kitr","based64enc","rprojroot","mime","rmarkdown"))'
+  R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"))' \
+  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")'
 
 # RStudio Install
 RUN \
@@ -147,7 +158,8 @@ RUN \
   && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-  && rm -rf ${H2O_DIRECTORY} 
+  && rm -rf ${H2O_DIRECTORY} \
+  && R -e 'IRkernel::installspec(user = FALSE)'
 
 # Install Spark
 RUN \
