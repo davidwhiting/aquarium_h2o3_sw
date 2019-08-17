@@ -21,8 +21,9 @@ echo "-------------------------"
 echo "Welcome to H2O Training  "
 echo "-------------------------"
 echo ""
-echo "- Connect to Jupyter notebook on port 8888 (password: h2o)"
-echo "- Connect to RStudio on port 8787 (username/password: h2o/h2o)"
+echo "- Connect to Jupyter notebook on port 8888 or /jupyter/ (password: h2o)"
+echo "- Connect to RStudio on port 8787 or /rstudio/ (username/password: h2o/h2o)"
+echo ""
 
 #
 # CONDA_HOME value set in Dockerfile
