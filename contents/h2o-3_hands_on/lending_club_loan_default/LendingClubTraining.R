@@ -33,7 +33,7 @@
 ## any H2O cluster that you start.
 
 library(h2o)
-h2o.init(bind_to_localhost = FALSE)
+h2o.init(bind_to_localhost = FALSE, context_path="h2o")
 
 #################################################################################
 ###
