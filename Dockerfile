@@ -103,6 +103,7 @@ RUN \
   && mkdir -p /usr/local/lib/R/site-library \
   && chmod 777 /usr/local/lib/R/site-library 
 
+# markdown for rstudio
 RUN \
   R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"))' 
 
@@ -207,6 +208,10 @@ RUN \
   && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && echo "spark.ext.h2o.context.path=h2o" >> /home/h2o/bin/spark/conf/spark-defaults.conf \
   && echo "spark.ui.proxyBase=/spark" >> /home/h2o/bin/spark/conf/spark-defaults.conf
+
+## Create link for ease of use in jupyter notebooks import command
+RUN \
+  ln ${CONDA_HOME}/envs/h2o/lib/${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar $/home/h2o/h2o.jar
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
