@@ -206,12 +206,14 @@ RUN \
 RUN \
   sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-  && echo "spark.ext.h2o.context.path=h2o" >> /home/h2o/bin/spark/conf/spark-defaults.conf \
-  && echo "spark.ui.proxyBase=/spark" >> /home/h2o/bin/spark/conf/spark-defaults.conf
+  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
+  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
 
-## Create link for ease of use in jupyter notebooks import command
-RUN \
-  ln ${CONDA_HOME}/envs/h2o/lib/${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar $/home/h2o/h2o.jar
+### Create link for ease of use in jupyter notebooks import command
+#RUN \
+#  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
+#  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/startup \
+#  && chmod +x ${BASE}/startup
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
@@ -236,4 +238,4 @@ EXPOSE 54321
 EXPOSE 54327
 EXPOSE 8888
 EXPOSE 8787
-EXPOSE 4040   
+EXPOSE 4040
