@@ -15,7 +15,7 @@ Load the **h2o** R library and initialize a local H2O cluster.
 
 ```{r}
 library(h2o)
-h2o.init(bind_to_localhost = FALSE)
+h2o.init(bind_to_localhost = FALSE, context_path="h2o")
 h2o.no_progress()  # Turn off progress bars for notebook readability
 ```
 
@@ -25,7 +25,7 @@ For the AutoML binary classification demo, we use a subset of the [Product Backo
 
 ```{r}
 # Use local data file or download from GitHub
-docker_data_path <- "../../data/backorders/product_backorders.csv"
+docker_data_path <- "/home/h2o/data/backorders/product_backorders.csv"
 if (file.exists(docker_data_path)) {
   data_path <- docker_data_path
 } else {

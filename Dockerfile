@@ -209,11 +209,11 @@ RUN \
   && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
   && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
 
-### Create link for ease of use in jupyter notebooks import command
-#RUN \
-#  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
-#  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/startup \
-#  && chmod +x ${BASE}/startup
+## Create link for ease of use in jupyter notebooks import command
+RUN \
+  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
+  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/startup \
+  && chmod +x ${BASE}/startup
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE

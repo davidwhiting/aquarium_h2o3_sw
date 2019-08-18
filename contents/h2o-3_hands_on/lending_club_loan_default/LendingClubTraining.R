@@ -51,7 +51,7 @@ h2o.init(bind_to_localhost = FALSE, context_path="h2o")
 ##
 ## The loans data is loaded directly into H2O using the following command:
 
-loans = h2o.importFile("../../data/lending_club/LoanStats3a.csv", 
+loans = h2o.importFile("/home/h2o/data/lending_club/LoanStats3a.csv", 
                        col.types = c("int_rate" = "string",
                                      "revol_util" = "string",
                                      "emp_length" = "string",
