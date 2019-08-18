@@ -219,10 +219,10 @@ RUN \
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
 ######################################################################
 
-COPY --chown=h2o contents/data data
-COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
-COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
-#COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+#COPY --chown=h2o contents/data data
+#COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
+#COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
+##COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
 
 ######################################################################
 
