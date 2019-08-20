@@ -7,6 +7,9 @@ fetch:
 build:  fetch
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
+bare:  
+	docker build -t whiting/h2o-sw-training -f Dockerfile .
+
 buildclean: fetch
 	docker build --no-cache -t whiting/h2o-sw-training -f Dockerfile .	
 
