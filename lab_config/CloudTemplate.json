@@ -72,7 +72,7 @@
               "  exit 1\n",
               "fi\n",
 
-              "/bin/echo SUCCEDED >> /tmp/userdata_succeeded\n",
+              "/bin/echo SUCCEEDED >> /tmp/userdata_succeeded\n",
               "\n",
               "if [ ! -f /usr/local/bin/cfn-signal ]; then\n",
               "  mkdir -p /tmp/aws-cfn-bootstrap-latest\n",

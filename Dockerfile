@@ -131,6 +131,14 @@ RUN \
   && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
   && R -e 'IRkernel::installspec(user = FALSE)'
 
+# Graphviz
+RUN \
+  apt-get -y update \
+  && apt-get -y install \
+  && apt-get -y install \
+        graphviz
+
+
 # ----- USER H2O -----
 
 # h2o user
@@ -156,7 +164,7 @@ RUN \
   && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
   && unzip ${H2O_DIRECTORY}.zip \
   && rm ${H2O_DIRECTORY}.zip \
-  && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl" \
+  && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl tqdm graphviz shap xgboost" \
   && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
@@ -222,7 +230,7 @@ RUN \
 COPY --chown=h2o contents/data data
 COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
 COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
-#COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
 
 ######################################################################
 
