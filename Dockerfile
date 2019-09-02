@@ -220,8 +220,8 @@ RUN \
 ## Create link for ease of use in jupyter notebooks import command
 RUN \
   bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
-  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/startup \
-  && chmod +x ${BASE}/startup
+  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
+  && chmod +x ${BASE}/aquarium_startup
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
