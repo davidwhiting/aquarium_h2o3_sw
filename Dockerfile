@@ -121,131 +121,131 @@ RUN \
   mkdir /log \
   && chmod o+w /log
 
-## IRKernel for R in Jupyter
+# IRKernel for R in Jupyter
+RUN \
+  apt-get -y update \
+  && apt-get -y install \
+        libzmq3-dev \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        jupyter-core \
+        jupyter-client \
+  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
+  && R -e 'IRkernel::installspec(user = FALSE)'
+
+## Graphviz
 #RUN \
 #  apt-get -y update \
 #  && apt-get -y install \
-#        libzmq3-dev \
-#        libcurl4-openssl-dev \
-#        libssl-dev \
-#        jupyter-core \
-#        jupyter-client \
-#  && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
-#  && R -e 'IRkernel::installspec(user = FALSE)'
-#
-### Graphviz
-##RUN \
-##  apt-get -y update \
-##  && apt-get -y install \
-##  && apt-get -y install \
-##        graphviz
-#
-#
-## ----- USER H2O -----
-#
-## h2o user
+#  && apt-get -y install \
+#        graphviz
+
+
+# ----- USER H2O -----
+
+# h2o user
+RUN \
+  useradd -ms /bin/bash h2o && \
+  usermod -a -G sudo h2o && \
+  echo "h2o:h2o" | chpasswd && \
+  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+USER h2o
+WORKDIR /home/h2o
+
+# Install Miniconda
+RUN \
+  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} \
+  && bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} \
+  && ${CONDA} update -n base -c defaults conda \
+  && rm ${MINICONDA_FILE}
+
+# Install H2O
+RUN \
+  ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
+  && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
+  && unzip ${H2O_DIRECTORY}.zip \
+  && rm ${H2O_DIRECTORY}.zip \
+  && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl tqdm graphviz shap xgboost" \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
+  && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
+  && rm -rf ${H2O_DIRECTORY} 
+
+# Install Spark
+RUN \
+  ${CONDA} create -y --name pysparkling python=${CONDA_PYTHON_PYSPARKLING} anaconda \
+  && mkdir -p ${SPARK_HOME} \
+  && wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz \
+  && tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 \
+  && rm ${SPARK_DIRECTORY}.tgz \
+  && bash -c "source ${CONDA_HOME}/bin/activate pysparkling && pip install tabulate future colorama" \
+  && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
+
+# Install Sparkling Water  
+RUN \
+  wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip \
+  && unzip ${SPARKLING_WATER_DIRECTORY}.zip \
+  && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
+  && rm ${SPARKLING_WATER_DIRECTORY}.zip
+
+# Install Spylon-kernel for Scala
 #RUN \
-#  useradd -ms /bin/bash h2o && \
-#  usermod -a -G sudo h2o && \
-#  echo "h2o:h2o" | chpasswd && \
-#  echo 'h2o ALL=NOPASSWD: ALL' >> /etc/sudoers
-#
-#USER h2o
-#WORKDIR /home/h2o
-#
-## Install Miniconda
-#RUN \
-#  wget https://repo.anaconda.com/miniconda/${MINICONDA_FILE} \
-#  && bash ${MINICONDA_FILE} -b -p ${CONDA_HOME} \
-#  && ${CONDA} update -n base -c defaults conda \
-#  && rm ${MINICONDA_FILE}
-#
-## Install H2O
-#RUN \
-#  ${CONDA} create -y --name h2o python=${CONDA_PYTHON_H2O} anaconda \
-#  && wget ${H2O_S3_PATH}/rel-${H2O_BRANCH_NAME}/${H2O_BUILD_NUMBER}/h2o-${H2O_PROJECT_VERSION}.zip \
-#  && unzip ${H2O_DIRECTORY}.zip \
-#  && rm ${H2O_DIRECTORY}.zip \
-#  && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl tqdm graphviz shap xgboost" \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
-#  && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-#  && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-#  && rm -rf ${H2O_DIRECTORY} 
-#
-## Install Spark
-#RUN \
-#  ${CONDA} create -y --name pysparkling python=${CONDA_PYTHON_PYSPARKLING} anaconda \
-#  && mkdir -p ${SPARK_HOME} \
-#  && wget ${SPARK_PATH}/spark-${SPARK_VERSION}/${SPARK_DIRECTORY}.tgz \
-#  && tar zxvf ${SPARK_DIRECTORY}.tgz -C ${SPARK_HOME} --strip-components 1 \
-#  && rm ${SPARK_DIRECTORY}.tgz \
-#  && bash -c "source ${CONDA_HOME}/bin/activate pysparkling && pip install tabulate future colorama" \
-#  && ${CONDA_HOME}/envs/pysparkling/bin/ipython profile create pyspark
-#
-## Install Sparkling Water  
-#RUN \
-#  wget ${SPARKLING_WATER_PATH}/${SPARKLING_WATER_BRANCH_NAME}/${SPARKLING_WATER_BUILD_NUMBER}/${SPARKLING_WATER_DIRECTORY}.zip \
-#  && unzip ${SPARKLING_WATER_DIRECTORY}.zip \
-#  && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
-#  && rm ${SPARKLING_WATER_DIRECTORY}.zip
-#
-## Install Spylon-kernel for Scala
-##RUN \
-##  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
-##  && bash -c "sudo ${CONDA_HOME}/envs/h2o/bin/python -m spylon_kernel install"
-#
-### Copy templates and substitute for versions
-#COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
-#COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
-#
-## Entry point
-#COPY templates/run.sh /run.sh
-#
-### Replace template variables with their values
-#RUN \
-#   sudo chmod a+x /run.sh \
-#   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
-#   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
-#   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
-#   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
-#   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
-#   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
-#
-## https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
-## https://nathan.vertile.com/blog/2017/12/07/run-jupyter-notebook-behind-a-nginx-reverse-proxy-subpath/
-#RUN \
-#  sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-#  && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-#  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
-#  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
-#
-### Create link for ease of use in jupyter notebooks import command
-#RUN \
-#  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
-#  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
-#  && chmod +x ${BASE}/aquarium_startup
-#
-#######################################################################
-## ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
-#######################################################################
-#
-#COPY --chown=h2o contents/data data
-#COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
-#COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
-#COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
-#
-#######################################################################
-#
-## ----- RUN INFORMATION -----
-#
-#USER h2o
-#WORKDIR /home/h2o
-#ENV JAVA_HOME=/usr
-#
-#ENTRYPOINT ["/run.sh"]
-#
-#EXPOSE 54321
-#EXPOSE 54327
-#EXPOSE 8888
-#EXPOSE 8787
-#EXPOSE 4040
+#  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
+#  && bash -c "sudo ${CONDA_HOME}/envs/h2o/bin/python -m spylon_kernel install"
+
+## Copy templates and substitute for versions
+COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
+COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
+
+# Entry point
+COPY templates/run.sh /run.sh
+
+## Replace template variables with their values
+RUN \
+   sudo chmod a+x /run.sh \
+   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
+   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
+
+# https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
+# https://nathan.vertile.com/blog/2017/12/07/run-jupyter-notebook-behind-a-nginx-reverse-proxy-subpath/
+RUN \
+  sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
+  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
+
+## Create link for ease of use in jupyter notebooks import command
+RUN \
+  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
+  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
+  && chmod +x ${BASE}/aquarium_startup
+
+######################################################################
+# ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
+######################################################################
+
+COPY --chown=h2o contents/data data
+COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
+COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
+COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+
+######################################################################
+
+# ----- RUN INFORMATION -----
+
+USER h2o
+WORKDIR /home/h2o
+ENV JAVA_HOME=/usr
+
+ENTRYPOINT ["/run.sh"]
+
+EXPOSE 54321
+EXPOSE 54327
+EXPOSE 8888
+EXPOSE 8787
+EXPOSE 4040
