@@ -81,6 +81,7 @@ RUN \
         net-tools \
         nginx \
         sudo \
+	systemd \
         vim \
         wget \
         zip \
@@ -138,7 +139,7 @@ COPY templates/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY templates/nginx/sites-available/training /etc/nginx/sites-available/training
 RUN \
   rm -f /etc/nginx/sites-available/default \
-  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training 
+  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training  
 
 # ----- USER H2O -----
 
@@ -222,7 +223,8 @@ RUN \
 RUN \
   bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
   && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
-  && chmod +x ${BASE}/aquarium_startup
+  && chmod +x ${BASE}/aquarium_startup \
+  && bash -c "sudo systemctl restart nginx"
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
