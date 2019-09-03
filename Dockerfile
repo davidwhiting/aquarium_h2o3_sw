@@ -105,7 +105,7 @@ RUN \
   && mkdir -p /usr/local/lib/R/site-library \
   && chmod 777 /usr/local/lib/R/site-library 
 
-# markdown for rstudio
+# Markdown for RStudio
 RUN \
   R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"))' 
 
@@ -133,13 +133,13 @@ RUN \
   && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
   && R -e 'IRkernel::installspec(user = FALSE)'
 
-## Graphviz
-#RUN \
-#  apt-get -y update \
-#  && apt-get -y install \
-#  && apt-get -y install \
-#        graphviz
-
+# Configure nginx
+COPY templates/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY templates/nginx/sites-available/training /etc/nginx/sites-available/training
+RUN \
+  rm -f /etc/nginx/sites-available/default \
+  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training \
+  && systemctl restart nginx
 
 # ----- USER H2O -----
 
