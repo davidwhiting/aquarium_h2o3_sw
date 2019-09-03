@@ -75,10 +75,13 @@ RUN \
         dirmngr \
         gdebi-core \
         git \
+        graphviz \
         libcurl4-nss-dev \
         locales \
         net-tools \
+        nginx \
         sudo \
+	systemd \
         vim \
         wget \
         zip \
@@ -103,7 +106,7 @@ RUN \
   && mkdir -p /usr/local/lib/R/site-library \
   && chmod 777 /usr/local/lib/R/site-library 
 
-# markdown for rstudio
+# Markdown for RStudio
 RUN \
   R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("evaluate","highr","markdown","yaml","htmltools","knitr","based64enc","rprojroot","mime","rmarkdown"))' 
 
@@ -131,13 +134,12 @@ RUN \
   && R -e 'chooseCRANmirror(graphics=FALSE, ind=1);install.packages(c("repr", "IRdisplay", "IRkernel"), type = "source")' \
   && R -e 'IRkernel::installspec(user = FALSE)'
 
-# Graphviz
+# Configure nginx
+COPY templates/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY templates/nginx/sites-available/training /etc/nginx/sites-available/training
 RUN \
-  apt-get -y update \
-  && apt-get -y install \
-  && apt-get -y install \
-        graphviz
-
+  rm -f /etc/nginx/sites-available/default \
+  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training  
 
 # ----- USER H2O -----
 
@@ -222,6 +224,8 @@ RUN \
   bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
   && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
   && chmod +x ${BASE}/aquarium_startup
+#  \
+#  && bash -c "sudo service nginx restart"
 
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
