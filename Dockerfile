@@ -138,8 +138,7 @@ COPY templates/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY templates/nginx/sites-available/training /etc/nginx/sites-available/training
 RUN \
   rm -f /etc/nginx/sites-available/default \
-  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training \
-  && systemctl restart nginx
+  && ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training 
 
 # ----- USER H2O -----
 
