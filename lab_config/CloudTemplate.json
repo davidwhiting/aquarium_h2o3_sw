@@ -116,6 +116,10 @@
     "Spark": {
       "Description": "Spark URL",
       "Value": { "Fn::Join": [ "", ["http://", { "Fn::GetAtt": ["AquariumEC2Instance", "PublicDnsName"] }, "/spark/" ]]}
+    },
+    "Zeppelin": {
+      "Description": "Zeppelin URL",
+      "Value": { "Fn::Join": [ "", ["http://", { "Fn::GetAtt": ["AquariumEC2Instance", "PublicDnsName"] }, "/zeppelin/" ]]}
     }
   }
 }
