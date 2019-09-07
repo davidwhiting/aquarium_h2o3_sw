@@ -1,0 +1,12 @@
+[Unit]
+Description=Service to run Zeppelin Daemon
+Documentation=
+[Service]
+User=h2o
+Group=h2o
+Type=forking
+WorkingDirectory=/home/h2o
+ExecStart=/home/h2o/bin/zeppelin/bin/zeppelin-daemon.sh start
+ExecStop=/home/h2o/bin/zeppelin/bin/zeppelin-daemon.sh stop
+[Install]
+WantedBy=multi-user.target

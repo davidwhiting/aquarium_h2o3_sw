@@ -7,10 +7,6 @@ LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 ARG BASE=/home/h2o/bin
 
-ARG CONDA_HOME=${BASE}/miniconda3
-ENV SPARK_HOME=${BASE}/spark
-ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
-
 ##############################
 ## Versioning information
 ##   Update these values and (hopefully) everything
@@ -19,7 +15,8 @@ ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
 ARG RSTUDIO_VERSION=1.2.1335
 
 ARG CONDA_PYTHON_H2O=3.6
-ARG CONDA_PYTHON_PYSPARKLING=2.7
+ARG CONDA_PYTHON_PYSPARKLING=3.6
+#ARG CONDA_PYTHON_PYSPARKLING=2.7
 
 ARG H2O_BRANCH_NAME=yau
 ARG H2O_MAJOR_VERSION=3.26.0
@@ -31,10 +28,19 @@ ARG SPARK_HADOOP_VERSION=2.7
 ARG SPARKLING_WATER_BRANCH_NUMBER=2.4
 ARG SPARKLING_WATER_BUILD_NUMBER=13
 
+ARG ZEPPELIN_VERSION=0.8.1
+
   # file found at $SPARK_HOME/python/lib/
 ARG PY4J_VERSION=0.10.7
 
+ENV SPARK_SUBMIT_OPTIONS="--packages ai.h2o:sparkling-water-package_2.11:3.26.3-2.4"
+
 ##### DON'T CHANGE ARG OR ENV BELOW ############
+
+ARG CONDA_HOME=${BASE}/miniconda3
+ENV SPARK_HOME=${BASE}/spark
+ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
+ENV ZEPPELIN_HOME=${BASE}/zeppelin
 
 # To keep tzdata from requesting time zones interactively
 ARG DEBIAN_FRONTEND=noninteractive
@@ -59,6 +65,11 @@ ARG SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
 
 ARG KERNEL=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
 ARG PY4J=py4j-${PY4J_VERSION}-src.zip
+
+#https://www-us.apache.org/dist/zeppelin/zeppelin-0.8.1/zeppelin-0.8.1-bin-all.tgz
+ARG ZEPPELIN_PATH=https://www-us.apache.org/dist/zeppelin/zeppelin-${ZEPPELIN_VERSION}
+ARG ZEPPELIN=zeppelin-${ZEPPELIN_VERSION}-bin-all.tgz
+
 
 #########################################
 
@@ -189,6 +200,23 @@ RUN \
   && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
   && rm ${SPARKLING_WATER_DIRECTORY}.zip
 
+# Install Apache Zeppelin (primarily for Scala)
+RUN \
+  wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
+  && mkdir -p ${ZEPPELIN_HOME} \
+  && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
+  && rm ${ZEPPELIN} 
+#  \
+#  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+
+## Copy zeppelin files
+COPY --chown=h2o templates/zeppelin/conf/shiro.ini ${ZEPPELIN_HOME}/conf/shiro.ini
+COPY --chown=h2o templates/zeppelin/conf/zeppelin-site.xml ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
+
+#RUN \
+#  bash -c "${ZEPPELIN_HOME}/bin/zeppelin-daemon.sh start" 
+
 # Install Spylon-kernel for Scala
 #RUN \
 #  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
@@ -225,8 +253,13 @@ RUN \
   && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
   && chmod +x ${BASE}/aquarium_startup
 #  \
-#  && bash -c "sudo service nginx restart"
 
+RUN \
+  mkdir /home/h2o/zeppelin \
+  && bash -c "sudo /usr/sbin/service nginx reload" \
+  && bash -c "sudo /usr/sbin/service nginx restart" 
+
+#
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
 ######################################################################
@@ -236,7 +269,7 @@ COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
 COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
 COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
 
-######################################################################
+#####################################################################
 
 # ----- RUN INFORMATION -----
 
@@ -250,4 +283,5 @@ EXPOSE 54321
 EXPOSE 54327
 EXPOSE 8888
 EXPOSE 8787
+EXPOSE 8080
 EXPOSE 4040
