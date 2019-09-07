@@ -7,10 +7,6 @@ LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 ARG BASE=/home/h2o/bin
 
-ARG CONDA_HOME=${BASE}/miniconda3
-ENV SPARK_HOME=${BASE}/spark
-ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
-
 ##############################
 ## Versioning information
 ##   Update these values and (hopefully) everything
@@ -31,10 +27,17 @@ ARG SPARK_HADOOP_VERSION=2.7
 ARG SPARKLING_WATER_BRANCH_NUMBER=2.4
 ARG SPARKLING_WATER_BUILD_NUMBER=13
 
+ARG ZEPPELIN_VERSION=0.8.1
+
   # file found at $SPARK_HOME/python/lib/
 ARG PY4J_VERSION=0.10.7
 
 ##### DON'T CHANGE ARG OR ENV BELOW ############
+
+ARG CONDA_HOME=${BASE}/miniconda3
+ENV SPARK_HOME=${BASE}/spark
+ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
+ARG ZEPPELIN_HOME=${BASE}/zeppelin
 
 # To keep tzdata from requesting time zones interactively
 ARG DEBIAN_FRONTEND=noninteractive
@@ -59,6 +62,11 @@ ARG SPARKLING_WATER_DIRECTORY=sparkling-water-${SPARKLING_WATER_PROJECT_VERSION}
 
 ARG KERNEL=${CONDA_HOME}/envs/h2o/share/jupyter/kernels/pyspark/kernel.json
 ARG PY4J=py4j-${PY4J_VERSION}-src.zip
+
+#https://www-us.apache.org/dist/zeppelin/zeppelin-0.8.1/zeppelin-0.8.1-bin-all.tgz
+ARG ZEPPELIN_PATH=https://www-us.apache.org/dist/zeppelin/zeppelin-${ZEPPELIN_VERSION}
+ARG ZEPPELIN=zeppelin-${ZEPPELIN_VERSION}-bin-all.tgz
+
 
 #########################################
 
@@ -189,6 +197,13 @@ RUN \
   && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
   && rm ${SPARKLING_WATER_DIRECTORY}.zip
 
+# Install Apache Zeppelin (primarily for Scala)
+RUN \
+  wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
+  && mkdir -p ${ZEPPELIN_HOME} \
+  && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
+  && rm ${ZEPPELIN}
+
 # Install Spylon-kernel for Scala
 #RUN \
 #  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install spylon-kernel" \
@@ -226,28 +241,29 @@ RUN \
   && chmod +x ${BASE}/aquarium_startup
 #  \
 #  && bash -c "sudo service nginx restart"
-
-######################################################################
-# ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
-######################################################################
-
-COPY --chown=h2o contents/data data
-COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
-COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
-COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
-
-######################################################################
-
-# ----- RUN INFORMATION -----
-
-USER h2o
-WORKDIR /home/h2o
-ENV JAVA_HOME=/usr
-
-ENTRYPOINT ["/run.sh"]
-
-EXPOSE 54321
-EXPOSE 54327
-EXPOSE 8888
-EXPOSE 8787
-EXPOSE 4040
+#
+#######################################################################
+## ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
+#######################################################################
+#
+#COPY --chown=h2o contents/data data
+#COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
+#COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
+#COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+#
+#######################################################################
+#
+## ----- RUN INFORMATION -----
+#
+#USER h2o
+#WORKDIR /home/h2o
+#ENV JAVA_HOME=/usr
+#
+#ENTRYPOINT ["/run.sh"]
+#
+#EXPOSE 54321
+#EXPOSE 54327
+#EXPOSE 8888
+#EXPOSE 8787
+#EXPOSE 4040
+#
