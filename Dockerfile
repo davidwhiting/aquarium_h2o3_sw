@@ -33,12 +33,14 @@ ARG ZEPPELIN_VERSION=0.8.1
   # file found at $SPARK_HOME/python/lib/
 ARG PY4J_VERSION=0.10.7
 
+ENV SPARK_SUBMIT_OPTIONS="--packages ai.h2o:sparkling-water-package_2.11:3.26.3-2.4"
+
 ##### DON'T CHANGE ARG OR ENV BELOW ############
 
 ARG CONDA_HOME=${BASE}/miniconda3
 ENV SPARK_HOME=${BASE}/spark
 ARG SPARKLING_WATER_HOME=${BASE}/sparkling-water
-ARG ZEPPELIN_HOME=${BASE}/zeppelin
+ENV ZEPPELIN_HOME=${BASE}/zeppelin
 
 # To keep tzdata from requesting time zones interactively
 ARG DEBIAN_FRONTEND=noninteractive
@@ -203,11 +205,13 @@ RUN \
   wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
   && mkdir -p ${ZEPPELIN_HOME} \
   && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
-  && rm ${ZEPPELIN} \
-  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+  && rm ${ZEPPELIN} 
+#  \
+#  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
 
 ## Copy zeppelin files
 COPY --chown=h2o templates/zeppelin/conf/shiro.ini ${ZEPPELIN_HOME}/conf/shiro.ini
+COPY --chown=h2o templates/zeppelin/conf/zeppelin-site.xml ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
 COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
 
 #RUN \

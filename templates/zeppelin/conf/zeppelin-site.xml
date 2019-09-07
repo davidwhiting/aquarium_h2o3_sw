@@ -51,8 +51,8 @@
 
 <property>
   <name>zeppelin.notebook.dir</name>
-  <value>notebook</value>
-  <description>path or URI for notebook persist</description>
+  <value>/home/h2o/sparkling_water_hands_on/</value>
+  <description>location of notebooks</description>
 </property>
 
 <property>

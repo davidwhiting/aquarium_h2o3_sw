@@ -86,6 +86,25 @@ server {
       sub_filter_once off;
     }
 
+# https://stackoverflow.com/questions/42862731/running-apache-zeppelin-with-nginx-as-reverse-proxy
+
+    #-----
+
+   location /zeppelin/ {
+      proxy_pass http://localhost:8080/zeppelin/;
+      proxy_http_version 1.1;
+      proxy_set_header Accept-Encoding '';
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+    }
+
+#    location /zeppelin/ {
+#      proxy_pass http://localhost:8080/zeppelin/;
+#      sub_filter '/proxy/' '/spark/proxy/';
+#      sub_filter '">Back to Master<' '/spark/">Back to Master<';
+#      sub_filter_once off;
+#    }
+
     location /api/ {
       proxy_pass http://localhost:4040;
     }
