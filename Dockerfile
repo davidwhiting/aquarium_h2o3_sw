@@ -202,7 +202,15 @@ RUN \
   wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
   && mkdir -p ${ZEPPELIN_HOME} \
   && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
-  && rm ${ZEPPELIN}
+  && rm ${ZEPPELIN} \
+  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+
+## Copy zeppelin files
+COPY --chown=h2o templates/zeppelin/conf/shiro.ini ${ZEPPELIN_HOME}/conf/shiro.ini
+COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
+
+#RUN \
+#  bash -c "${ZEPPELIN_HOME}/bin/zeppelin-daemon.sh start" 
 
 # Install Spylon-kernel for Scala
 #RUN \
