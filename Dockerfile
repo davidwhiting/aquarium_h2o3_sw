@@ -253,7 +253,12 @@ RUN \
   && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
   && chmod +x ${BASE}/aquarium_startup
 #  \
-#  && bash -c "sudo service nginx restart"
+
+RUN \
+  mkdir /home/h2o/zeppelin \
+  && bash -c "sudo /usr/sbin/service nginx reload" \
+  && bash -c "sudo /usr/sbin/service nginx restart" 
+
 #
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE

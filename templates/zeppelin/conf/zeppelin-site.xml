@@ -51,7 +51,7 @@
 
 <property>
   <name>zeppelin.notebook.dir</name>
-  <value>/home/h2o/sparkling_water_hands_on/</value>
+  <value>/home/h2o/zeppelin/</value>
   <description>location of notebooks</description>
 </property>
 
