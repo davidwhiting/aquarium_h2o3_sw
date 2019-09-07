@@ -15,7 +15,8 @@ ARG BASE=/home/h2o/bin
 ARG RSTUDIO_VERSION=1.2.1335
 
 ARG CONDA_PYTHON_H2O=3.6
-ARG CONDA_PYTHON_PYSPARKLING=2.7
+ARG CONDA_PYTHON_PYSPARKLING=3.6
+#ARG CONDA_PYTHON_PYSPARKLING=2.7
 
 ARG H2O_BRANCH_NAME=yau
 ARG H2O_MAJOR_VERSION=3.26.0
@@ -250,28 +251,28 @@ RUN \
 #  \
 #  && bash -c "sudo service nginx restart"
 #
-#######################################################################
-## ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
-#######################################################################
-#
-#COPY --chown=h2o contents/data data
-#COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
-#COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
-#COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
-#
-#######################################################################
-#
-## ----- RUN INFORMATION -----
-#
-#USER h2o
-#WORKDIR /home/h2o
-#ENV JAVA_HOME=/usr
-#
-#ENTRYPOINT ["/run.sh"]
-#
-#EXPOSE 54321
-#EXPOSE 54327
-#EXPOSE 8888
-#EXPOSE 8787
-#EXPOSE 4040
-#
+######################################################################
+# ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
+######################################################################
+
+COPY --chown=h2o contents/data data
+COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
+COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
+COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+
+#####################################################################
+
+# ----- RUN INFORMATION -----
+
+USER h2o
+WORKDIR /home/h2o
+ENV JAVA_HOME=/usr
+
+ENTRYPOINT ["/run.sh"]
+
+EXPOSE 54321
+EXPOSE 54327
+EXPOSE 8888
+EXPOSE 8787
+EXPOSE 8080
+EXPOSE 4040
