@@ -255,9 +255,10 @@ RUN \
 #  \
 
 RUN \
-  mkdir /home/h2o/zeppelin \
-  && bash -c "sudo /usr/sbin/service nginx reload" \
-  && bash -c "sudo /usr/sbin/service nginx restart" 
+  mkdir /home/h2o/zeppelin 
+#\
+#  && bash -c "sudo /usr/sbin/service nginx reload" \
+#  && bash -c "sudo /usr/sbin/service nginx restart" 
 
 #
 ######################################################################
