@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PID=/var/run/aquarium.pid
+
+if [ ! -f $PID ]; then
+    java -ea -cp /home/h2o/bin/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o & 
+    sudo echo #! > $PID
+fi

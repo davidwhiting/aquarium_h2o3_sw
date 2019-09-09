@@ -248,9 +248,9 @@ RUN \
   && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
 
 ## Create link for ease of use in jupyter notebooks import command
+COPY --chown=h2o templates/aquarium_startup bin/aquarium_startup
 RUN \
   bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
-  && echo "java -ea -cp ${BASE}/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o &" > ${BASE}/aquarium_startup \
   && chmod +x ${BASE}/aquarium_startup
 #  \
 
@@ -269,6 +269,8 @@ COPY --chown=h2o contents/data data
 COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
 COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
 COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
+COPY --chown=h2o contents/xai_guidelines xai_guidelines
+
 
 #####################################################################
 
