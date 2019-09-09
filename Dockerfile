@@ -260,7 +260,6 @@ RUN \
 #  && bash -c "sudo /usr/sbin/service nginx reload" \
 #  && bash -c "sudo /usr/sbin/service nginx restart" 
 
-#
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
 ######################################################################
@@ -270,10 +269,6 @@ COPY --chown=h2o contents/h2o-3_hands_on h2o-3_hands_on
 COPY --chown=h2o contents/sparkling_water_hands_on sparkling_water_hands_on
 COPY --chown=h2o contents/patrick_hall_mli patrick_hall_mli
 COPY --chown=h2o contents/xai_guidelines xai_guidelines
-<<<<<<< HEAD
-
-=======
->>>>>>> 016afef12f16c07a90421788a19e354bba23e768
 
 #####################################################################
 
