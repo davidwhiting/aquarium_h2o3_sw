@@ -254,8 +254,8 @@ RUN \
   && chmod +x ${BASE}/aquarium_startup
 #  \
 
-RUN \
-  mkdir /home/h2o/zeppelin 
+#RUN \
+#  mkdir /home/h2o/zeppelin 
 #\
 #  && bash -c "sudo /usr/sbin/service nginx reload" \
 #  && bash -c "sudo /usr/sbin/service nginx restart" 
