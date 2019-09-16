@@ -238,19 +238,19 @@ RUN \
   && mv ${SPARKLING_WATER_DIRECTORY} ${SPARKLING_WATER_HOME} \
   && rm ${SPARKLING_WATER_DIRECTORY}.zip
 
-# Install Apache Zeppelin (primarily for Scala)
-RUN \
-  wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
-  && mkdir -p ${ZEPPELIN_HOME} \
-  && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
-  && rm ${ZEPPELIN} 
-#  \
-#  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+## Install Apache Zeppelin (primarily for Scala)
+#RUN \
+#  wget ${ZEPPELIN_PATH}/${ZEPPELIN} \
+#  && mkdir -p ${ZEPPELIN_HOME} \
+#  && tar zxvf ${ZEPPELIN} -C ${ZEPPELIN_HOME} --strip-components 1 \
+#  && rm ${ZEPPELIN} 
+##  \
+##  && cp ${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
 
-## Copy zeppelin files
-COPY --chown=h2o templates/zeppelin/conf/shiro.ini ${ZEPPELIN_HOME}/conf/shiro.ini
-COPY --chown=h2o templates/zeppelin/conf/zeppelin-site.xml ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
-COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
+### Copy zeppelin files
+#COPY --chown=h2o templates/zeppelin/conf/shiro.ini ${ZEPPELIN_HOME}/conf/shiro.ini
+#COPY --chown=h2o templates/zeppelin/conf/zeppelin-site.xml ${ZEPPELIN_HOME}/conf/zeppelin-site.xml
+#COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
 
 #RUN \
 #  bash -c "${ZEPPELIN_HOME}/bin/zeppelin-daemon.sh start" 
