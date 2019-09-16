@@ -7,6 +7,9 @@ fetch:
 build:  fetch
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
+check:  fetch
+	docker build -t whiting/h2o-sw-check -f Dockerfile-2.7 .
+
 bare:  
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
@@ -15,6 +18,9 @@ buildclean: fetch
 
 run:
 	docker run --init --rm -u h2o:h2o -p 4040:4040 -p 8787:8787 -p 8888:8888 -p 8080:8080 -p 54321-54399:54321-54399 whiting/h2o-sw-training
+
+runcheck:
+	docker run --init --rm -u h2o:h2o -v /home/ubuntu/aquarium_h2o3_sw/contents:/home/h2o/dev/ -p 4040:4040 -p 8787:8787 -p 8888:8888 -p 8080:8080 -p 54321-54399:54321-54399 whiting/h2o-sw-check
 
 save:
 	docker save whiting/h2o-sw-training | gzip -c > h2o-sw-training.gz
