@@ -265,7 +265,7 @@ COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profil
 COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 
 # Entry point
-COPY templates/run.sh /run.sh
+COPY templates/run-2.7.sh /run.sh
 
 ## Replace template variables with their values
 RUN \
