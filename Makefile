@@ -22,6 +22,13 @@ run:
 save:
 	docker save whiting/h2o-sw-training | gzip -c > h2o-sw-training.gz
 
+buildmli: 
+	docker build -t whiting/h2o-sw-training-mli -f Dockerfile-mli .
+
+runmli:
+	docker run --init --rm -u h2o:h2o -p 8787:8787 -p 8888:8888 -p 8080:8080 -p 54321-54399:54321-54399 whiting/h2o-sw-training-mli
+
+
 ## for correcting data issues in development
 update_data:
 	s3cmd sync --no-preserve contents/data/ s3://whiting-aquarium-h2osw/contents/data/ 
