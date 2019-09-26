@@ -181,7 +181,9 @@ RUN \
   && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-  && rm -rf ${H2O_DIRECTORY} 
+  && rm -rf ${H2O_DIRECTORY} \
+  && ${CONDA} install -c conda-forge jupyter_contrib_nbextensions
+
 
 # Install Spark
 RUN \
