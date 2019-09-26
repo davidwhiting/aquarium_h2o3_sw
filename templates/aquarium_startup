@@ -9,6 +9,7 @@ if [ ! -f $PID ]; then
 fi
 
 # wait for H2O server to connect
+# add a counter to ensure this is not an infinite loop?
 until [[ ! -z $(ss -tulpn | grep :54321) ]]
 do
 	sleep 1
