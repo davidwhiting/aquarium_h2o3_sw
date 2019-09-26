@@ -4,6 +4,9 @@ fetch:
 	mkdir -p contents/data
 	s3cmd sync --no-preserve s3://whiting-aquarium-h2osw/contents/data/ contents/data/
 
+base:
+	docker build -t whiting/h2o-sw-base -f Dockerfile-base .
+
 build:  fetch
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
