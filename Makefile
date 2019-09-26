@@ -7,26 +7,19 @@ fetch:
 base:
 	docker build -t whiting/h2o-sw-base -f Dockerfile-base .
 
-build:  
-	fetch 
-	base
+build:  fetch base
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
-buildclean: 
-	fetch
+buildclean: fetch
 	docker build --no-cache -t whiting/h2o-sw-training -f Dockerfile .	
 
-build_mli: 
-	base
+build_mli: base
 	docker build -t whiting/h2o-sw-mli -f Dockerfile-mli .
 
-build_coursework: 
-	fetch 
-	base
+build_coursework: fetch base
 	docker build -t whiting/h2o-sw-coursework -f Dockerfile-coursework .
 
-check:  
-	fetch
+check:  fetch
 	docker build -t whiting/h2o-sw-check -f Dockerfile-2.7 .
 
 bare:  
