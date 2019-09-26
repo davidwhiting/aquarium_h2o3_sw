@@ -1,8 +1,6 @@
 FROM whiting/h2o-sw-base:latest
 LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
-## some ARG in base need to be made ENV
-
 # Entry point
 COPY templates/run.sh /run.sh
 
