@@ -1,8 +1,15 @@
 #!/bin/bash
 
-PID=/var/run/aquarium.pid
+# officially should write to /var/run/aquarium.pid, but unwritable even with sudo
+PID=/var/tmp/aquarium.pid
 
 if [ ! -f $PID ]; then
     java -ea -cp /home/h2o/bin/h2o.jar water.H2OApp -port 54321 -log_level INFO -context_path h2o & 
-    sudo echo #! > $PID
+    echo $! > $PID
 fi
+
+# wait for H2O server to connect
+until [[ ! -z $(ss -tulpn | grep :54321) ]]
+do
+	sleep 1
+done
