@@ -2,7 +2,7 @@ FROM whiting/h2o-sw-base:latest
 LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 # Entry point
-COPY templates/run-mli.sh /run.sh
+COPY templates/docker/run.sh /run.sh
 
 ## Replace template variables with their values
 RUN \
