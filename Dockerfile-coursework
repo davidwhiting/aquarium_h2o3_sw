@@ -7,7 +7,8 @@ COPY --chown=h2o contents/data data
 COPY --chown=h2o contents/coursework coursework 
 
 # jupyter trust mynotebook.ipynb
-${CONDA_HOME}/envs/h2o/bin/jupyter trust coursework/H2O-Lesson_1.ipynb
+RUN \
+    ${CONDA_HOME}/envs/h2o/bin/jupyter trust coursework/H2O-Lesson_1.ipynb
 #####################################################################
 
 # ----- RUN INFORMATION -----
