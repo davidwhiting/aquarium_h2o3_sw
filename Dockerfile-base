@@ -231,13 +231,6 @@ COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 RUN \
   bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
   ${JUPYTER} contrib nbextension install --sys-prefix --symlink \
-
-  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
-
-  ${CONDA} install -c conda-forge jupyter_contrib_nbextensions 
-
-RUN \
-  ${JUPYTER} nbextension enable codefolding/main \
   && ${JUPYTER} nbextension enable codefolding/main \
   && ${JUPYTER} nbextension enable collapsible_headings/main \
   && ${JUPYTER} nbextension enable code_font_size/code_font_size \
