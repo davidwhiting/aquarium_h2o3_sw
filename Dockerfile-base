@@ -181,10 +181,20 @@ RUN \
   && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-  && rm -rf ${H2O_DIRECTORY} \
-  && ${CONDA} install -c conda-forge jupyter_contrib_nbextensions \
-  && ${CONDA} install -c conda-forge jupyter_nbextensions_configurator  
+  && rm -rf ${H2O_DIRECTORY}
 
+# Install and enable Jupyter Extensions
+RUN \
+  ${CONDA} install -c conda-forge jupyter_contrib_nbextensions \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable codefolding/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable collapsible_headings/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable code_font_size/code_font_size \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable codefolding/edit \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable freeze/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable hide_header/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable python-markdown/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable exercise2/main \
+  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable rubberband/main
 
 # Install Spark
 RUN \
