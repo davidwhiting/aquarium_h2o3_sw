@@ -4,34 +4,29 @@ fetch:
 	mkdir -p contents/data
 	s3cmd sync --no-preserve s3://whiting-aquarium-h2osw/contents/data/ contents/data/
 
-base:
-	docker build -t whiting/h2o-sw-base -f Dockerfile-base .
-
-build:  fetch base
+build:  fetch
+	cat Dockerfile-base Dockerfile-h2o-sw > Dockerfile
 	docker build -t whiting/h2o-sw-training -f Dockerfile .
 
 buildclean: fetch
-	docker build --no-cache -t whiting/h2o-sw-training -f Dockerfile .	
+	cat Dockerfile-base Dockerfile-h2o-sw > Dockerfile
+	docker build --no-cache -t whiting/h2o-sw-training -f Dockerfile .
 
-build_mli: base
-	docker build -t whiting/h2o-sw-mli -f Dockerfile-mli .
+mli: 	
+	cat Dockerfile-base Dockerfile-mli > Dockerfile
+	docker build -t whiting/h2o-sw-mli -f Dockerfile .
 
-build_coursework: fetch base
-	docker build -t whiting/h2o-sw-coursework -f Dockerfile-coursework .
+coursework: fetch
+	cat Dockerfile-base Dockerfile-coursework > Dockerfile
+	docker build -t whiting/h2o-sw-coursework -f Dockerfile .
 
 check:  fetch
 	docker build -t whiting/h2o-sw-check -f Dockerfile-2.7 .
 
-bare:  
-	docker build -t whiting/h2o-sw-training -f Dockerfile .
-
 run:
 	docker run --init --rm -u h2o:h2o -p 4040:4040 -p 8787:8787 -p 8888:8888 -p 8080:8080 -p 54321-54399:54321-54399 whiting/h2o-sw-training
 
-runmli:
-	docker run --init --rm -u h2o:h2o -p 8787:8787 -p 8888:8888 -p 8080:8080 -p 54321-54399:54321-54399 whiting/h2o-sw-training-mli
-
-all: build build_coursework build_mli
+all: build coursework mli
 
 ## for correcting data issues in development
 update_data:

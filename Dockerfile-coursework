@@ -1,5 +1,3 @@
-FROM whiting/h2o-sw-base:latest
-LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
 ######################################################################
 # ADD CONTENT FOR COURSEWORK HERE
