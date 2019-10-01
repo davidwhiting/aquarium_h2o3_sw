@@ -1,33 +1,6 @@
 FROM whiting/h2o-sw-base:latest
 LABEL maintainer="David Whiting <david.whiting@h2o.ai>"
 
-# Entry point
-COPY templates/docker/run.sh /run.sh
-
-## Replace template variables with their values
-RUN \
-   sudo chmod a+x /run.sh \
-   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
-   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
-   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
-   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
-   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
-   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
-
-# https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
-# https://nathan.vertile.com/blog/2017/12/07/run-jupyter-notebook-behind-a-nginx-reverse-proxy-subpath/
-RUN \
-  sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-  && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
-  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
-  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
-
-## Create link for ease of use in jupyter notebooks import command
-COPY --chown=h2o templates/aquarium_startup bin/aquarium_startup
-RUN \
-  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
-  && chmod +x ${BASE}/aquarium_startup
-
 ######################################################################
 # ADD CONTENT FOR INDIVIDUAL HANDS-ON SESSIONS HERE
 ######################################################################

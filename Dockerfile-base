@@ -227,18 +227,52 @@ COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
 COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
 COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 
-# Install and enable Jupyter Extensions
+# Entry point
+COPY templates/docker/run.sh /run.sh
+
+## Replace template variables with their values
 RUN \
-  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
-  ${JUPYTER} contrib nbextension install --user \
-  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix collapsible_headings/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix code_font_size/code_font_size \
-  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/edit \
-  && ${JUPYTER} nbextension enable --py --sys-prefix freeze/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix hide_header/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix python-markdown/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix exercise2/main \
-  && ${JUPYTER} nbextension enable --py --sys-prefix rubberband/main
+   sudo chmod a+x /run.sh \
+   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
+   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
+
+# https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
+# https://nathan.vertile.com/blog/2017/12/07/run-jupyter-notebook-behind-a-nginx-reverse-proxy-subpath/
+RUN \
+  sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
+  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
+
+## Create link for ease of use in jupyter notebooks import command
+COPY --chown=h2o templates/aquarium_startup bin/aquarium_startup
+RUN \
+  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
+  && chmod +x ${BASE}/aquarium_startup
+
+#RUN \
+#  mkdir /home/h2o/zeppelin 
+#\
+#  && bash -c "sudo /usr/sbin/service nginx reload" \
+#  && bash -c "sudo /usr/sbin/service nginx restart" 
+
+
+## Install and enable Jupyter Extensions
+#RUN \
+#  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
+#  ${JUPYTER} contrib nbextension install --user \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix collapsible_headings/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix code_font_size/code_font_size \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/edit \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix freeze/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix hide_header/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix python-markdown/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix exercise2/main \
+#  && ${JUPYTER} nbextension enable --py --sys-prefix rubberband/main
 
 # /home/h2o/bin/miniconda3/envs/h2o/lib/python3.6/site-packages/jupyter_contrib_nbextensions/nbextensions/codefolding
