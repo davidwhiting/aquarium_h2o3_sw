@@ -70,6 +70,7 @@ ENV PY4J=py4j-${PY4J_VERSION}-src.zip
 ARG ZEPPELIN_PATH=https://www-us.apache.org/dist/zeppelin/zeppelin-${ZEPPELIN_VERSION}
 ARG ZEPPELIN=zeppelin-${ZEPPELIN_VERSION}-bin-all.tgz
 
+ARG JUPYTER=${CONDA_HOME}/envs/h2o/bin/jupyter
 
 #########################################
 
@@ -178,7 +179,7 @@ RUN \
   && unzip ${H2O_DIRECTORY}.zip \
   && rm ${H2O_DIRECTORY}.zip \
   && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl tqdm graphviz shap xgboost" \
-  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
+  && ${JUPYTER} notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
   && rm -rf ${H2O_DIRECTORY}
@@ -228,14 +229,21 @@ COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 
 # Install and enable Jupyter Extensions
 RUN \
-  ${CONDA} install -c conda-forge jupyter_contrib_nbextensions \
-  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable codefolding/main 
-#  \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable collapsible_headings/main \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable code_font_size/code_font_size \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable codefolding/edit \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable freeze/main \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable hide_header/main \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable python-markdown/main \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable exercise2/main \
-#  && ${CONDA_HOME}/envs/h2o/bin/jupyter nbextensions enable rubberband/main
+  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
+  ${JUPYTER} contrib nbextension install --sys-prefix --symlink \
+
+  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
+
+  ${CONDA} install -c conda-forge jupyter_contrib_nbextensions 
+
+RUN \
+  ${JUPYTER} nbextension enable codefolding/main \
+  && ${JUPYTER} nbextension enable codefolding/main \
+  && ${JUPYTER} nbextension enable collapsible_headings/main \
+  && ${JUPYTER} nbextension enable code_font_size/code_font_size \
+  && ${JUPYTER} nbextension enable codefolding/edit \
+  && ${JUPYTER} nbextension enable freeze/main \
+  && ${JUPYTER} nbextension enable hide_header/main \
+  && ${JUPYTER} nbextension enable python-markdown/main \
+  && ${JUPYTER} nbextension enable exercise2/main \
+  && ${JUPYTER} nbextension enable rubberband/main
