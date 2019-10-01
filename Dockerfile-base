@@ -231,14 +231,14 @@ COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
 RUN \
   bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
   ${JUPYTER} contrib nbextension install --user \
-  && ${JUPYTER} nbextension --py --sys-prefix enable codefolding/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable collapsible_headings/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable code_font_size/code_font_size \
-  && ${JUPYTER} nbextension --py --sys-prefix enable codefolding/edit \
-  && ${JUPYTER} nbextension --py --sys-prefix enable freeze/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable hide_header/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable python-markdown/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable exercise2/main \
-  && ${JUPYTER} nbextension --py --sys-prefix enable rubberband/main
+  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix collapsible_headings/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix code_font_size/code_font_size \
+  && ${JUPYTER} nbextension enable --py --sys-prefix codefolding/edit \
+  && ${JUPYTER} nbextension enable --py --sys-prefix freeze/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix hide_header/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix python-markdown/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix exercise2/main \
+  && ${JUPYTER} nbextension enable --py --sys-prefix rubberband/main
 
 # /home/h2o/bin/miniconda3/envs/h2o/lib/python3.6/site-packages/jupyter_contrib_nbextensions/nbextensions/codefolding
