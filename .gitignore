@@ -1,4 +1,5 @@
 .ipynb_checkpoints
+Dockerfile
 .swp
 s3/
 tmp/

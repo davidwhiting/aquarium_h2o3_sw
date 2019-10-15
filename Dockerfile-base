@@ -20,7 +20,7 @@ ARG CONDA_PYTHON_PYSPARKLING=3.6
 
 ARG H2O_BRANCH_NAME=yau
 ARG H2O_MAJOR_VERSION=3.26.0
-ARG H2O_BUILD_NUMBER=2
+ARG H2O_BUILD_NUMBER=5
 
 ARG SPARK_VERSION=2.4.3
 ARG SPARK_HADOOP_VERSION=2.7
@@ -70,6 +70,7 @@ ENV PY4J=py4j-${PY4J_VERSION}-src.zip
 ARG ZEPPELIN_PATH=https://www-us.apache.org/dist/zeppelin/zeppelin-${ZEPPELIN_VERSION}
 ARG ZEPPELIN=zeppelin-${ZEPPELIN_VERSION}-bin-all.tgz
 
+ARG JUPYTER=${CONDA_HOME}/envs/h2o/bin/jupyter
 
 #########################################
 
@@ -178,13 +179,10 @@ RUN \
   && unzip ${H2O_DIRECTORY}.zip \
   && rm ${H2O_DIRECTORY}.zip \
   && bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install ${H2O_DIRECTORY}/python/h2o*.whl tqdm graphviz shap xgboost" \
-  && ${CONDA_HOME}/envs/h2o/bin/jupyter notebook --generate-config \
+  && ${JUPYTER} notebook --generate-config \
   && sed -i "s/#c.NotebookApp.token = '<generated>'/c.NotebookApp.token = 'h2o'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
   && R CMD INSTALL ${H2O_DIRECTORY}/R/h2o*.gz \
-  && rm -rf ${H2O_DIRECTORY} \
-  && ${CONDA} install -c conda-forge jupyter_contrib_nbextensions \
-  && ${CONDA} install -c conda-forge jupyter_nbextensions_configurator  
-
+  && rm -rf ${H2O_DIRECTORY}
 
 # Install Spark
 RUN \
@@ -228,3 +226,53 @@ COPY templates/zeppelin/etc/systemd/system/zeppelin.service /etc/systemd/system/
 ## Copy templates and substitute for versions
 COPY --chown=h2o templates/pyspark/00-pyspark-setup.py /home/h2o/.ipython/profile_pyspark/startup/
 COPY --chown=h2o templates/pyspark/kernel.json ${KERNEL}
+
+# Entry point
+COPY templates/docker/run.sh /run.sh
+
+## Replace template variables with their values
+RUN \
+   sudo chmod a+x /run.sh \
+   && sudo sed -i "s|(CONDA_HOME)|$CONDA_HOME|" /run.sh \
+   && sed -i "s|(CONDA_HOME)|$CONDA_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_HOME)|$SPARKLING_WATER_HOME|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BRANCH_NUMBER)|$SPARKLING_WATER_BRANCH_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(SPARKLING_WATER_BUILD_NUMBER)|$SPARKLING_WATER_BUILD_NUMBER|g" ${KERNEL} \
+   && sed -i "s|(PY4J)|$PY4J|" /home/h2o/.ipython/profile_pyspark/startup/00-pyspark-setup.py
+
+# https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
+# https://nathan.vertile.com/blog/2017/12/07/run-jupyter-notebook-behind-a-nginx-reverse-proxy-subpath/
+RUN \
+  sed -i "s/#c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/jupyter'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && sed -i "s/#c.NotebookApp.allow_origin = ''/c.NotebookApp.allow_origin = '*'/" /home/h2o/.jupyter/jupyter_notebook_config.py \
+  && echo "spark.ext.h2o.context.path=h2o" >> ${SPARK_HOME}/conf/spark-defaults.conf \
+  && echo "spark.ui.proxyBase=/spark" >> ${SPARK_HOME}/conf/spark-defaults.conf
+
+## Create link for ease of use in jupyter notebooks import command
+COPY --chown=h2o templates/aquarium_startup bin/aquarium_startup
+RUN \
+  bash -c "ln ${CONDA_HOME}/envs/h2o/lib/python${CONDA_PYTHON_H2O}/site-packages/h2o/backend/bin/h2o.jar ${BASE}" \
+  && chmod +x ${BASE}/aquarium_startup
+
+#RUN \
+#  mkdir /home/h2o/zeppelin 
+#\
+#  && bash -c "sudo /usr/sbin/service nginx reload" \
+#  && bash -c "sudo /usr/sbin/service nginx restart" 
+
+
+## Install and enable Jupyter Extensions
+RUN \
+  bash -c "source ${CONDA_HOME}/bin/activate h2o && pip install jupyter_contrib_nbextensions" \
+  && ${JUPYTER} contrib nbextension install --user \
+  && ${JUPYTER} nbextension enable codefolding/main \
+  && ${JUPYTER} nbextension enable collapsible_headings/main \
+  && ${JUPYTER} nbextension enable code_font_size/code_font_size \
+  && ${JUPYTER} nbextension enable codefolding/edit \
+  && ${JUPYTER} nbextension enable freeze/main \
+  && ${JUPYTER} nbextension enable hide_header/main \
+  && ${JUPYTER} nbextension enable python-markdown/main \
+  && ${JUPYTER} nbextension enable exercise2/main \
+  && ${JUPYTER} nbextension enable rubberband/main
+
+# /home/h2o/bin/miniconda3/envs/h2o/lib/python3.6/site-packages/jupyter_contrib_nbextensions/nbextensions/codefolding
